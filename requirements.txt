@@ -1,0 +1,6 @@
+pandas
+tensorflow
+numpy
+jupyter
+jupyterplot
+legitindicators
