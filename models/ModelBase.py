@@ -69,16 +69,15 @@ class ModelBase(ABC):
             self.input_layer = Input(shape=self.model.input_shape)
         else:
             self.input_layer = Input(shape=self.input_shape)
+            functional_model = self.input_layer
+
             if self.flatten_input:
                 functional_model = Flatten()(self.input_layer)
 
             for d in self.layers:
                 functional_model = d(functional_model)
 
-            functional_model = Dense(np.prod(
-                self.output_shape), activation='relu', kernel_initializer='random_normal', bias_initializer='random_normal')(functional_model)
-            functional_model = Reshape(
-                target_shape=self.output_shape)(functional_model)
+            functional_model = Reshape(target_shape=self.output_shape)(functional_model)
             self.model = Model(
                 self.input_layer, outputs=functional_model, name=name)
             self.model.compile(optimizer=self.optimizer, loss=self.loss)

@@ -2,8 +2,8 @@ from typing import Dict, List
 
 from pandas import DataFrame
 
-from data import CsvDataLoader
-from data.CsvDataConfig import CalculatedColumnConfig
+from data.loaders import CsvDataLoader
+from data.configs.CsvDataConfig import CalculatedColumnConfig
 
 
 class CsvDataWrapper(object):

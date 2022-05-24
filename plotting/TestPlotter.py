@@ -1,7 +1,7 @@
 from typing import List
-from data.CsvDataConfig import CsvDataConfig
-from data.CsvDataWrapper import CsvDataWrapper
-from data.CsvModelTestResult import CsvModelTestResult
+from data.configs.CsvDataConfig import CsvDataConfig
+from data.wrappers.CsvDataWrapper import CsvDataWrapper
+from data.test_results.CsvModelTestResult import CsvModelTestResult
 from matplotlib import pyplot as plt
 
 from models.CsvModel import CsvModel

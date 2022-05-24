@@ -1,10 +1,10 @@
 import numpy as np
 import tensorflow as tf
 from pandas import DataFrame, DatetimeIndex
-from data import CsvDataLoader
-from data.CsvDataWrapper import CsvDataWrapper
-from data.CsvDataConfig import CsvDataConfig
-from data.CsvModelTestResult import CsvModelTestResult
+from data.loaders import CsvDataLoader
+from data.wrappers.CsvDataWrapper import CsvDataWrapper
+from data.configs.CsvDataConfig import CsvDataConfig
+from data.test_results.CsvModelTestResult import CsvModelTestResult
 
 from models.ModelBase import ModelBase
 
@@ -71,8 +71,7 @@ class CsvModel(ModelBase):
         return loss
 
     def test(self):
-        self.most_recent_test_result = {
-            "loss": None, "input_labels": [], "output_labels": [], "output_preds": []}
+        self.most_recent_test_result = {"loss": None, "input_labels": [], "output_labels": [], "output_preds": []}
         super().test()
         return CsvModelTestResult(**self.most_recent_test_result,data_ref=self.dataconfig.to_testing_config(),index=self.test_index)
 

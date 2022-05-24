@@ -5,7 +5,7 @@ from typing import Dict, List
 import numpy as np
 from pandas import DataFrame
 
-from data.CsvDataConfig import CsvDataConfig
+from data.configs.CsvDataConfig import CsvDataConfig
 
 
 def convert_rows_to_columns(row_list):

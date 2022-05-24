@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 import tensorflow as tf
-from data.CsvDataConfig import CsvDataConfig, CalculatedColumnConfig
+from data.configs.CsvDataConfig import CsvDataConfig, CalculatedColumnConfig
 from pandas import DataFrame, read_csv, to_datetime
 
 
