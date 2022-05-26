@@ -3,7 +3,7 @@ from models.GanModelBase import GanModelBase
 import tensorflow as tf
 
 class GanGeneratorModel(GanModelBase):
-    def __post__init__(self):
+    def __post_init__(self):
         self.most_recent_gen_test = None
         self.test_dataset = None
         self.train_dataset = None
