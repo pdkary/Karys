@@ -20,8 +20,8 @@ class GanDiscriminatorModel(GanModelBase):
         self.generator = generator
     
     def evaluate_train_loss(self, model_input, labels, model_output):
-        ##labels are always 1s
         gen_noise_batch = self.generator.get_datawrapper().get_single()
+        
         disc_real_output = model_output
         gen_output = self.generator.model(gen_noise_batch, training=False)
         disc_gen_output = self.model(gen_output, training=True)

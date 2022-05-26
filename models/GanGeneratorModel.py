@@ -5,19 +5,25 @@ import tensorflow as tf
 class GanGeneratorModel(GanModelBase):
     def __post__init__(self):
         self.most_recent_gen_test = None
+        self.test_dataset = None
+        self.train_dataset = None
 
     def get_noise_dataset(self) -> tf.data.Dataset:
         if self.datawrapper is None:
             raise ValueError(
                 "datawrapper and noise_size must be set before getting noise dataset")
         else:
-            return self.datawrapper.get_dataset().batch(self.dataconfig.batch_size)
+            return self.datawrapper.get_dataset()
 
     def get_train_dataset(self) -> tf.data.Dataset:
-        return self.get_noise_dataset().shuffle(buffer_size=512).take(self.dataconfig.num_batches)
+        if self.train_dataset is None:
+            self.train_dataset = self.get_noise_dataset().batch(self.dataconfig.batch_size)
+        return self.train_dataset.shuffle(buffer_size=512).take(self.dataconfig.num_batches)
     
     def get_test_dataset(self) -> tf.data.Dataset:
-        return self.get_noise_dataset().take(self.dataconfig.num_batches)
+        if self.test_dataset is None:
+            self.test_dataset = self.get_noise_dataset().batch(self.dataconfig.batch_size)
+        return self.test_dataset.shuffle(buffer_size=512).take(self.dataconfig.num_batches)
         
     def set_discriminator(self, discriminator):
         self.discriminator = discriminator
