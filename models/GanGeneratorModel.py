@@ -3,11 +3,6 @@ from models.GanModelBase import GanModelBase
 import tensorflow as tf
 
 class GanGeneratorModel(GanModelBase):
-    def __post_init__(self):
-        self.most_recent_gen_test = None
-        self.test_dataset = None
-        self.train_dataset = None
-
     def get_noise_dataset(self) -> tf.data.Dataset:
         if self.datawrapper is None:
             raise ValueError(

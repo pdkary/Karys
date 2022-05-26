@@ -15,6 +15,8 @@ class GanModelBase(ModelBase, ABC):
 
     def set_datawrapper(self, datawrapper: Union[ImageDataWrapper, RandomDataWrapper]):
         self.datawrapper = datawrapper
+        self.train_dataset = None
+        self.test_dataset = None
         self.dataset = None
     
     def get_datawrapper(self):
