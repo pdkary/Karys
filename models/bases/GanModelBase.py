@@ -6,7 +6,7 @@ from data.wrappers.ImageDataWrapper import ImageDataWrapper
 from keras.layers import Conv2D, Dense
 from data.wrappers.RandomDataWrapper import RandomDataWrapper
 
-from models.ModelBase import ModelBase
+from models.bases.ModelBase import ModelBase
 
 
 class GanModelBase(ModelBase, ABC):

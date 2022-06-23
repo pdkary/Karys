@@ -1,5 +1,5 @@
 from data.wrappers.RandomDataWrapper import RandomDataWrapper
-from models.GanModelBase import GanModelBase
+from models.bases.GanModelBase import GanModelBase
 import tensorflow as tf
 
 class GanGeneratorModel(GanModelBase):

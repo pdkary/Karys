@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractclassmethod, abstractmethod
 from dataclasses import dataclass
 from typing import List, Tuple
 
@@ -8,6 +8,8 @@ from tensorflow.keras.layers import Dense, Flatten, Input, Layer, Reshape
 from tensorflow.keras.losses import Loss
 from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.optimizers import Optimizer
+
+from data.test_results.ModelTestResult import ModelTestResult
 
 
 @dataclass
@@ -20,6 +22,10 @@ class ModelBase(ABC):
 
     flatten_input: bool = True
     model_filepath: str = None
+    
+    # @abstractclassmethod
+    # def load_from_saved_models(cls):
+    #     pass
 
     @abstractmethod
     def get_test_dataset(self) -> tf.data.Dataset:
@@ -41,27 +47,35 @@ class ModelBase(ABC):
     def layer_sizes(self):
         return [x.input_spec.shape for x in self.layers]
 
-    def train(self):
+    def train(self) -> ModelTestResult:
         running_loss = 0.0
+        inputs, labels, preds = [], [], []
         dataset = self.get_train_dataset()
-        for model_input, labels in list(dataset.as_numpy_iterator()):
+        for model_input, input_labels in list(dataset.as_numpy_iterator()):
             with tf.GradientTape() as grad_tape:
+                inputs.append(model_input)
+                labels.append(input_labels)
                 output = self.model(model_input, training=True)
-                loss = self.evaluate_train_loss(model_input, labels, output)
+                preds.append(output)
+                loss = self.evaluate_train_loss(model_input, input_labels, output)
                 running_loss += np.sum(loss)
                 
                 grads = grad_tape.gradient(loss, self.model.trainable_variables)
                 self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
-        return running_loss
+        return ModelTestResult(running_loss, inputs, labels, preds)
 
-    def test(self):
+    def test(self) -> ModelTestResult:
         running_loss = 0.0
+        inputs, labels, preds = [], [], []
         dataset = self.get_test_dataset()
-        for model_input, labels in list(dataset.as_numpy_iterator()):
+        for model_input, model_labels in list(dataset.as_numpy_iterator()):
+            inputs.append(model_input)
+            labels.append(model_labels)
             output = self.model(model_input, training=False)
-            loss = self.evaluate_test_loss(model_input, labels, output)
+            preds.append(output)
+            loss = self.evaluate_test_loss(model_input, model_labels, output)
             running_loss += np.sum(loss)
-        return running_loss
+        return ModelTestResult(running_loss, inputs, labels, preds)
 
     def build(self, name: str = None, silent=False):
         if self.model_filepath is not None:

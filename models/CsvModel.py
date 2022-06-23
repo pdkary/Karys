@@ -2,11 +2,12 @@ import numpy as np
 import tensorflow as tf
 from pandas import DataFrame, DatetimeIndex
 from data.loaders import CsvDataLoader
+from data.test_results.ModelTestResult import ModelTestResult
 from data.wrappers.CsvDataWrapper import CsvDataWrapper
 from data.configs.CsvDataConfig import CsvDataConfig
 from data.test_results.CsvModelTestResult import CsvModelTestResult
 
-from models.ModelBase import ModelBase
+from models.bases.ModelBase import ModelBase
 
 
 def convert_rows_to_columns(row_list):
@@ -54,40 +55,19 @@ class CsvModel(ModelBase):
         return self.train_dataset
 
     def train(self):
-        self.most_recent_train_result = {
-            c: 0 for c in self.dataconfig.output_columns}
-        super().train()
-        return DataFrame(self.most_recent_train_result)
+        train_result: ModelTestResult = super().train()
+        csv_train_result = CsvModelTestResult(train_result.loss,train_result.inputs,train_result.labels,train_result.preds,self.train_index,self.dataconfig)
+        return csv_train_result.to_dataframe()
 
     def evaluate_train_loss(self, model_input, labels, output):
-        loss = self.loss(labels, output)
-        output_columns = convert_batch_to_columns(output.numpy())
-        label_columns = convert_batch_to_columns(labels)
-        column_loss = self.loss(label_columns, output_columns).numpy()
-        for batch in enumerate(column_loss):
-            for j, row_val in enumerate(batch):
-                col_name = self.dataconfig.output_columns[j]
-                self.most_recent_train_result[col_name] += row_val
-        return loss
+        return self.loss(labels, output)
 
     def test(self):
-        self.most_recent_test_result = {"loss": None, "input_labels": [], "output_labels": [], "output_preds": []}
-        super().test()
-        return CsvModelTestResult(**self.most_recent_test_result,data_ref=self.dataconfig.to_testing_config(),index=self.test_index)
+        test_result: ModelTestResult = super().test()
+        return CsvModelTestResult(test_result.loss,test_result.inputs,test_result.labels,test_result.preds,self.test_index,self.dataconfig.to_testing_config)
 
     def evaluate_test_loss(self, model_input, labels, output):
-        loss = self.loss(labels, output)
-        if self.most_recent_test_result["loss"] is None:
-            self.most_recent_test_result["loss"] = loss
-        else:
-            self.most_recent_test_result["loss"] += loss
-
-        final_val = model_input[0][-1]
-        self.most_recent_test_result["input_labels"].append(final_val)
-        self.most_recent_test_result["output_labels"].append(labels[0][-1])
-        self.most_recent_test_result["output_preds"].append(
-            output.numpy()[0][-1])
-        return loss
+        return self.loss(labels, output)
     
     def propagate_data(self, data_wrapper: CsvDataWrapper, steps_forward: int) -> CsvDataWrapper:
         data_wrapper = data_wrapper.copy()

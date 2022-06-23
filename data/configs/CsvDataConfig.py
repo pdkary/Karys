@@ -2,6 +2,9 @@ from copy import copy
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Tuple
 
+from data.configs.DataConfig import DataConfig
+from data.saved_models import SavedModelService
+
 
 @dataclass
 class CalculatedColumnConfig(object):
@@ -18,15 +21,24 @@ class CalculatedColumnConfig(object):
 
 
 @dataclass
-class CsvDataConfig():
+class CsvDataConfig(DataConfig):
     data_columns: List[str]
     calculated_column_configs: List[CalculatedColumnConfig]
     horizon: int
     lookahead: int
-    batch_size: int
-    num_batches: int
     null_calculated: bool = False
     predict_calculated: bool = False
+
+    @property
+    def input_shape(self) -> Tuple:
+        return (self.horizon, len(self.input_columns))
+
+    @property
+    def output_shape(self) -> Tuple:
+        if self.predict_calculated:
+            return (self.lookahead, len(self.input_columns))
+        else:
+            return (self.lookahead, len(self.data_columns))
 
     @property
     def input_columns(self) -> List[str]:
@@ -46,17 +58,6 @@ class CsvDataConfig():
     @property
     def calculated_column_str(self) -> str:
         return "Calculated Columns=[" + ", ".join(self.calculated_columns) + "]"
-
-    @property
-    def input_shape(self) -> Tuple:
-        return (self.horizon, len(self.input_columns))
-
-    @property
-    def output_shape(self) -> Tuple:
-        if self.predict_calculated:
-            return (self.lookahead, len(self.input_columns))
-        else:
-            return (self.lookahead, len(self.data_columns))
 
     def __str__(self):
         return str(self.to_json())
@@ -81,3 +82,10 @@ class CsvDataConfig():
         new_data_ref.batch_size = 1
         new_data_ref.num_batches = None
         return new_data_ref
+    
+    @classmethod
+    def load_from_saved_configs(cls, filepath, indicators: List[CalculatedColumnConfig]):
+        get_indicator = lambda x: [i for i in indicators if i.name == i][0]
+        json_dict = SavedModelService.get_data_reference_dict()[filepath]
+        json_dict['indicators'] = [get_indicator(x) for x in json_dict['indicators']]
+        return cls(**json_dict)

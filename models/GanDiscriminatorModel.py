@@ -1,4 +1,4 @@
-from models.GanModelBase import GanModelBase
+from models.bases.GanModelBase import GanModelBase
 import tensorflow as tf
 
 class GanDiscriminatorModel(GanModelBase):

@@ -28,7 +28,7 @@ class ImageDataWrapper(object):
         return self.train_dataset
 
     def get_test_dataset(self):
-        if self.train_dataset is None:
+        if self.test_dataset is None:
             self.load_datasets()
         return self.test_dataset
 
