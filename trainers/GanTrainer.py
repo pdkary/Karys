@@ -52,22 +52,21 @@ class GanTrainer(object):
         return genr_loss, disc_loss
 
     def train(self, batch_size, num_batches) -> np.float32:
-        running_gen_loss = 0.0
-        running_disc_loss = 0.0
+        running_gen_loss = None
+        running_disc_loss = None
         noise_dataset = self.generator_input.get_dataset().shuffle(buffer_size=512).batch(batch_size).take(num_batches)
         image_dataset = self.get_train_dataset().shuffle(buffer_size=512).batch(batch_size).take(num_batches)
-
-        for noise,image in zip(list(noise_dataset.as_numpy_iterator()),list(image_dataset.as_numpy_iterator())):
-            if noise.shape[0] == batch_size and image.shape[0] == batch_size:
-                with tf.GradientTape() as genr_tape, tf.GradientTape() as disc_tape:
-                    genr_loss,disc_loss = self.test_step(noise,image)
-                    genr_grads = genr_tape.gradient(genr_loss, self.generator.model.trainable_variables)
-                    disc_grads = disc_tape.gradient(disc_loss, self.discriminator.model.trainable_variables)
-                    self.generator.optimizer.apply_gradients(zip(genr_grads, self.generator.model.trainable_variables))
-                    self.discriminator.optimizer.apply_gradients(zip(disc_grads, self.discriminator.model.trainable_variables))
-                    running_gen_loss += np.sum(genr_loss)
-                    running_disc_loss += np.sum(disc_loss)
-        return running_gen_loss, running_disc_loss
+        with tf.GradientTape() as genr_tape, tf.GradientTape() as disc_tape:
+            for noise,image in zip(list(noise_dataset.as_numpy_iterator()),list(image_dataset.as_numpy_iterator())):
+                if noise.shape[0] == batch_size and image.shape[0] == batch_size:
+                        genr_loss,disc_loss = self.test_step(noise,image)
+                        running_gen_loss = genr_loss if running_gen_loss is None else running_gen_loss + genr_loss
+                        running_disc_loss = disc_loss if running_disc_loss is None else running_disc_loss + disc_loss
+            genr_grads = genr_tape.gradient(running_gen_loss, self.generator.model.trainable_variables)
+            disc_grads = disc_tape.gradient(running_disc_loss, self.discriminator.model.trainable_variables)
+            self.generator.optimizer.apply_gradients(zip(genr_grads, self.generator.model.trainable_variables))
+            self.discriminator.optimizer.apply_gradients(zip(disc_grads, self.discriminator.model.trainable_variables))
+        return np.sum(running_gen_loss), np.sum(running_disc_loss)
 
     def test(self, batch_size, num_batches) -> np.float32:
         running_gen_loss = 0.0
