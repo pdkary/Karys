@@ -52,21 +52,24 @@ class GanTrainer(object):
         return genr_loss, disc_loss
 
     def train(self, batch_size, num_batches) -> np.float32:
-        running_gen_loss = None
-        running_disc_loss = None
+        gen_loss_bucket = []
+        disc_loss_bucket = []
         noise_dataset = self.generator_input.get_dataset().shuffle(buffer_size=512).batch(batch_size).take(num_batches)
         image_dataset = self.get_train_dataset().shuffle(buffer_size=512).batch(batch_size).take(num_batches)
+
         with tf.GradientTape() as genr_tape, tf.GradientTape() as disc_tape:
             for noise,image in zip(list(noise_dataset.as_numpy_iterator()),list(image_dataset.as_numpy_iterator())):
                 if noise.shape[0] == batch_size and image.shape[0] == batch_size:
-                        genr_loss,disc_loss = self.test_step(noise,image)
-                        running_gen_loss = genr_loss if running_gen_loss is None else running_gen_loss + genr_loss
-                        running_disc_loss = disc_loss if running_disc_loss is None else running_disc_loss + disc_loss
-            genr_grads = genr_tape.gradient(running_gen_loss, self.generator.model.trainable_variables)
-            disc_grads = disc_tape.gradient(running_disc_loss, self.discriminator.model.trainable_variables)
+                    genr_loss,disc_loss = self.test_step(noise,image)
+                    gen_loss_bucket.append(genr_loss)
+                    disc_loss_bucket.append(disc_loss)
+            gen_loss = tf.reduce_mean(gen_loss_bucket,axis=0) / (tf.math.reduce_std(gen_loss_bucket) + 1e-2)
+            disc_loss = tf.reduce_mean(disc_loss_bucket,axis=0) / (tf.math.reduce_std(disc_loss_bucket) + 1e-2)
+            genr_grads = genr_tape.gradient(gen_loss, self.generator.model.trainable_variables)
+            disc_grads = disc_tape.gradient(disc_loss, self.discriminator.model.trainable_variables)
             self.generator.optimizer.apply_gradients(zip(genr_grads, self.generator.model.trainable_variables))
             self.discriminator.optimizer.apply_gradients(zip(disc_grads, self.discriminator.model.trainable_variables))
-        return np.sum(running_gen_loss), np.sum(running_disc_loss)
+        return np.sum(np.mean(gen_loss_bucket,axis=0)), np.sum(np.mean(disc_loss_bucket,axis=0))
 
     def test(self, batch_size, num_batches) -> np.float32:
         running_gen_loss = 0.0
