@@ -31,6 +31,7 @@ class ImageDataConfig(DataConfig):
     flip_lr: bool = True
     train_test_ratio: float = 0.7
     preview_rows: int = 3
+    preview_cols: int = 4
     preview_margin: int = 12
     load_n_percent: int = 100
     load_scale_func: Callable = field(default_factory=lambda : map_to_0_1)
@@ -50,6 +51,7 @@ class ImageDataConfig(DataConfig):
                     flip=self.flip_lr,
                     train_test_ratio=self.train_test_ratio,
                     preview_rows=self.preview_rows,
+                    preview_cols=self.preview_cols,
                     preview_margin=self.preview_margin,
                     load_n_percent=self.load_n_percent)
 
