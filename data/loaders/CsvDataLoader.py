@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List, Tuple
 
 import numpy as np
 import tensorflow as tf
@@ -50,7 +50,7 @@ def get_columns_and_null_calculateds(df: DataFrame, columns: List[str], calculat
     return copy_df[[*columns, *list([c.name for c in calculated_columns])]]
 
 
-def get_horizon_dataset(df: DataFrame, data_ref: CsvDataConfig) -> tf.data.Dataset:
+def get_horizon_dataset(df: DataFrame, data_ref: CsvDataConfig) -> Tuple[Dict[np.array,np.array],tf.data.Dataset]:
     if data_ref.null_calculated:
         filtered_df = get_columns_and_null_calculateds(
             df, data_ref.data_columns, data_ref.calculated_column_configs)
@@ -71,7 +71,8 @@ def get_horizon_dataset(df: DataFrame, data_ref: CsvDataConfig) -> tf.data.Datas
     labels = np.array([filtered_df.iloc[i+H:i+H+L][data_ref.output_columns]
                        for i in n_list], dtype=np.float32)
     dataset = tf.data.Dataset.from_tensor_slices((examples, labels))
-    return index, dataset.batch(data_ref.batch_size)
+    index_to_data_dict = {i:e for i,e in dict(zip(index, examples)).items()}
+    return (index_to_data_dict, dataset)
 
 
 def get_last_horizon(df: DataFrame, data_ref: CsvDataConfig) -> tf.data.Dataset:

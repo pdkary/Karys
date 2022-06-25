@@ -3,7 +3,7 @@ from typing import Dict, List
 from pandas import DataFrame
 
 from data.loaders import CsvDataLoader
-from data.configs.CsvDataConfig import CalculatedColumnConfig
+from data.configs.CsvDataConfig import CalculatedColumnConfig, CsvDataConfig
 
 
 class CsvDataWrapper(object):
@@ -53,3 +53,6 @@ class CsvDataWrapper(object):
         self.data = self.data.append(data)
         self.data.sort_index(inplace=True)
         self.set_indicators(list(self.calculated_columns_configs.values()))
+    
+    def get_horizoned_data(self, data_config: CsvDataConfig):
+        return CsvDataLoader.get_horizon_dataset(self.data, data_config)

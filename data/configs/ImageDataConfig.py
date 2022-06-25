@@ -27,10 +27,12 @@ def map_to_0_1(input_arr):
 @dataclass
 class ImageDataConfig(DataConfig):
     image_shape: Tuple
+    image_type: str
     flip_lr: bool = True
     train_test_ratio: float = 0.7
     preview_rows: int = 3
     preview_margin: int = 12
+    load_n_percent: int = 100
     load_scale_func: Callable = field(default_factory=lambda : map_to_0_1)
     save_scale_func: Callable = field(default_factory=lambda : map_to_0_255)
 
@@ -42,18 +44,14 @@ class ImageDataConfig(DataConfig):
     def output_shape(self):
         return self.image_shape
 
-    def __post_init__(self):
-        assert self.batch_size % self.preview_rows == 0
-        self.preview_cols = self.batch_size//self.preview_rows
-    
     def to_json(self):
         return dict(image_shape=self.image_shape,
+                    image_type=self.image_type,
                     flip=self.flip_lr,
                     train_test_ratio=self.train_test_ratio,
                     preview_rows=self.preview_rows,
                     preview_margin=self.preview_margin,
-                    batch_size=self.batch_size,
-                    num_batches=self.num_batches)
+                    load_n_percent=self.load_n_percent)
 
     def __str__(self):
         return str(self.to_json())
@@ -61,9 +59,9 @@ class ImageDataConfig(DataConfig):
     def load_from_saved_configs(self):
         pass
 
-    @classmethod
-    def load_from_saved_configs(cls, filepath, load_scale_func: Callable, save_scale_func: Callable):
-        json_dict = SavedModelService.get_data_reference_dict()[filepath]
-        json_dict['load_scale_func'] = load_scale_func
-        json_dict['save_scale_func'] = save_scale_func
-        return cls(**json_dict)
+    # @classmethod
+    # def load_from_saved_configs(cls, filepath, load_scale_func: Callable, save_scale_func: Callable):
+    #     json_dict = SavedModelService.get_data_reference_dict()[filepath]
+    #     json_dict['load_scale_func'] = load_scale_func
+    #     json_dict['save_scale_func'] = save_scale_func
+    #     return cls(**json_dict)

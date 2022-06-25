@@ -5,8 +5,6 @@ from dataclasses import dataclass
 
 @dataclass
 class DataConfig(ABC):
-    batch_size: int
-    num_batches: int
 
     @abstractproperty
     def input_shape(self):
@@ -24,6 +22,6 @@ class DataConfig(ABC):
     def __str__(self):
         pass
 
-    @abstractclassmethod
-    def load_from_saved_configs(cls):
-        pass
+    # @abstractclassmethod
+    # def load_from_saved_configs(cls):
+    #     pass

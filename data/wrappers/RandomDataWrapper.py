@@ -11,7 +11,7 @@ class RandomDataWrapper(object):
 
     def get_dataset(self):
         randoms = np.random.normal(self.mean, self.std,size=(self.samples,*self.shape))
-        return tf.data.Dataset.from_tensor_slices((randoms,np.ones_like(randoms)))
+        return tf.data.Dataset.from_tensor_slices((randoms))
     
     def get_single(self):
         return np.random.normal(self.mean, self.std,size=(1,*self.shape))

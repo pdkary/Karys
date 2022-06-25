@@ -7,15 +7,15 @@ from data.configs.ImageDataConfig import ImageDataConfig
 
 
 
-def load_images(dirpath: str, image_type:str, load_n_percent=100):
-    glob_glob = dirpath + "/*" + image_type
+def load_images(dirpath: str, data_ref: ImageDataConfig):
+    glob_glob = dirpath + "/*" + data_ref.image_type
     images = glob.glob(glob_glob)
     print("LOADING FROM %s" % (glob_glob))
     print("LOADING %d IMAGES" % len(images))
     x = []
     num_images = len(images)
     for n, i in enumerate(images):
-        if 100*n/num_images >= load_n_percent:
+        if 100*n/num_images >= data_ref.load_n_percent:
             break
         x.append(Image.open(i))
     print("LOADED %d IMAGES" % len(x))
@@ -35,7 +35,7 @@ def load_dataset(imageset, data_ref: ImageDataConfig):
         img = np.array(img).astype('float32')
         img = data_ref.load_scale_func(img)
         imgs.append(img)
-    return tf.data.Dataset.from_tensor_slices((np.array(imgs),np.ones((len(imgs))))).batch(data_ref.batch_size)
+    return tf.data.Dataset.from_tensor_slices((np.array(imgs)))
     
 def save_images(filename, generated_images, data_ref: ImageDataConfig):
     image_count = 0

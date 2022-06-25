@@ -64,28 +64,24 @@ class CsvDataConfig(DataConfig):
 
     def to_json(self):
         return dict(data_columns=self.data_columns,
-                    indicators=[i.to_json()
+                    calculated_column_configs=[i.to_json()
                                 for i in self.calculated_column_configs],
                     horizon=self.horizon,
                     lookahead=self.lookahead,
-                    batch_size=self.batch_size,
-                    num_batches=self.num_batches,
-                    null_indicators=self.null_calculated)
+                    null_calculated=self.null_calculated)
 
     def as_null_indicators(self):
-        new_data_ref = self.to_testing_config()
+        new_data_ref = copy(self)
         new_data_ref.null_calculated = True
         return new_data_ref
 
     def to_testing_config(self):
         new_data_ref = copy(self)
-        new_data_ref.batch_size = 1
-        new_data_ref.num_batches = None
         return new_data_ref
     
     @classmethod
-    def load_from_saved_configs(cls, filepath, indicators: List[CalculatedColumnConfig]):
-        get_indicator = lambda x: [i for i in indicators if i.name == i][0]
+    def load_from_saved_configs(cls, filepath, calc_columns: List[CalculatedColumnConfig]):
+        get_indicator = lambda x: [i for i in calc_columns if i.name == x][0]
         json_dict = SavedModelService.get_data_reference_dict()[filepath]
-        json_dict['indicators'] = [get_indicator(x) for x in json_dict['indicators']]
+        json_dict['calculated_column_configs'] = [get_indicator(x) for x in json_dict['calculated_column_configs']]
         return cls(**json_dict)
