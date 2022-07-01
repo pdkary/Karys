@@ -4,10 +4,10 @@ from typing import Dict, List, Tuple
 from data.configs.DataConfig import DataConfig
 from data.saved_models.SavedModelService import SavedModelService, TrainedModelReference
 
-from models.bases.ModelBase import ModelBase
+from models.ModelWrapper import ModelWrapper
 
 @dataclass
-class MultiModelBase(object):
+class MultiModelWrapper(object):
     model_set: Dict[str,TrainedModelReference]
 
     @abstractmethod
@@ -15,7 +15,7 @@ class MultiModelBase(object):
         pass
     
     @property
-    def model_sets(self) -> List[Tuple[ModelBase, DataConfig]]:
+    def model_sets(self) -> List[Tuple[ModelWrapper, DataConfig]]:
         return list(self.model_set.items())
     
     @classmethod

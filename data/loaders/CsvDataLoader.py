@@ -1,27 +1,27 @@
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 import numpy as np
 import tensorflow as tf
-from data.configs.CsvDataConfig import CsvDataConfig, CalculatedColumnConfig
+from data.configs.CsvDataConfig import CsvDataConfig
 from pandas import DataFrame, read_csv, to_datetime
 
 
-def load_data(filename: str, index_name: str, calculated_columns: List[CalculatedColumnConfig] = []) -> DataFrame:
+def load_data(filename: str, data_config: CsvDataConfig) -> DataFrame:
     data = read_csv(filename)
-    assert index_name in data.columns
-    if data[index_name].dtype == object:
-        data[index_name] = to_datetime(
-            data[index_name], format='%Y-%m-%d %H:%M:%S')
+    assert data_config.index_name in data.columns
+    if data[data_config.index_name].dtype == object:
+        data[data_config.index_name] = to_datetime(
+            data[data_config.index_name], format='%Y-%m-%d %H:%M:%S')
     else:
-        data[index_name] = to_datetime(data[index_name], unit='ms')
-    data.set_index(index_name, inplace=True)
-    data = update_calculated_if_missing(data, calculated_columns)
+        data[data_config.index_name] = to_datetime(data[data_config.index_name], unit='ms')
+    data.set_index(data_config.index_name, inplace=True)
+    data = update_calculated_if_missing(data, data_config)
     data.to_csv(filename)
     return data
 
 
-def update_calculated_if_missing(df: DataFrame, calculated_columns: List[CalculatedColumnConfig]):
-    new_CCs = [c for c in calculated_columns if c.name not in df.columns]
+def update_calculated_if_missing(df: DataFrame, data_config: CsvDataConfig):
+    new_CCs = [c for c in data_config.calculated_columns if c.name not in df.columns]
     for cc in new_CCs:
         if len(cc.input_columns) == 1:
             if cc.input_columns[0] == df.index.name:
@@ -38,25 +38,23 @@ def update_calculated_if_missing(df: DataFrame, calculated_columns: List[Calcula
     return df
 
 
-def get_columns_and_calculateds(df: DataFrame, columns: List[str], calculated_columns: List[CalculatedColumnConfig]):
-    df = update_calculated_if_missing(df, calculated_columns)
-    return df[[*columns, *list([i.name for i in calculated_columns])]]
+def get_columns_and_calculateds(df: DataFrame, data_config: CsvDataConfig):
+    df = update_calculated_if_missing(df, data_config)
+    return df[data_config.input_columns]
 
 
-def get_columns_and_null_calculateds(df: DataFrame, columns: List[str], calculated_columns: List[CalculatedColumnConfig]):
+def get_columns_and_null_calculateds(df: DataFrame, data_config: CsvDataConfig):
     copy_df = df.copy()
-    for c in calculated_columns:
+    for c in data_config.calculated_columns:
         copy_df[c.name] = float('nan')
-    return copy_df[[*columns, *list([c.name for c in calculated_columns])]]
+    return copy_df[data_config.input_columns]
 
 
 def get_horizon_dataset(df: DataFrame, data_ref: CsvDataConfig) -> Tuple[Dict[np.array,np.array],tf.data.Dataset]:
     if data_ref.null_calculated:
-        filtered_df = get_columns_and_null_calculateds(
-            df, data_ref.data_columns, data_ref.calculated_column_configs)
+        filtered_df = get_columns_and_null_calculateds(df, data_ref)
     else:
-        filtered_df = get_columns_and_calculateds(
-            df, data_ref.data_columns, data_ref.calculated_column_configs)
+        filtered_df = get_columns_and_calculateds(df, data_ref)
     # we want to get every possible <horizon> length subset of the list, ending <lookahead> distance from the end
     # we also want to be sure that our <labels> have shape (<lookahead>, ... )
     # we also want to preserve then end of the list over the beginninng
@@ -77,11 +75,9 @@ def get_horizon_dataset(df: DataFrame, data_ref: CsvDataConfig) -> Tuple[Dict[np
 
 def get_last_horizon(df: DataFrame, data_ref: CsvDataConfig) -> tf.data.Dataset:
     if data_ref.null_calculated:
-        filtered_df = get_columns_and_null_calculateds(
-            df, data_ref.data_columns, data_ref.calculated_column_configs)
+        filtered_df = get_columns_and_null_calculateds(df, data_ref)
     else:
-        filtered_df = get_columns_and_calculateds(
-            df, data_ref.data_columns, data_ref.calculated_column_configs)
+        filtered_df = get_columns_and_calculateds(df, data_ref)
     length = len(filtered_df)
     H = data_ref.horizon
     L = data_ref.lookahead

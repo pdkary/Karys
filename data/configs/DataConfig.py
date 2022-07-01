@@ -1,9 +1,5 @@
+from abc import ABC, abstractmethod, abstractproperty
 
-
-from abc import ABC, abstractclassmethod, abstractmethod, abstractproperty
-from dataclasses import dataclass
-
-@dataclass
 class DataConfig(ABC):
 
     @abstractproperty

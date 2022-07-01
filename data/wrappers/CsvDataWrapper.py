@@ -1,24 +1,22 @@
-from typing import Dict, List
-
 from pandas import DataFrame
 
 from data.loaders import CsvDataLoader
-from data.configs.CsvDataConfig import CalculatedColumnConfig, CsvDataConfig
+from data.configs.CsvDataConfig import CsvDataConfig
 
 
 class CsvDataWrapper(object):
-    def __init__(self, df: DataFrame, calculated_cols_by_name: Dict[str, CalculatedColumnConfig] = {}):
+    def __init__(self, df: DataFrame, data_config: CsvDataConfig):
         self.data: DataFrame = df
-        self.calculated_columns_configs: Dict[str,CalculatedColumnConfig] = calculated_cols_by_name
+        self.data_config: CsvDataConfig = data_config
 
     @classmethod
-    def load_from_file(cls, filename, index_name, indicators: List[CalculatedColumnConfig]):
-        df = CsvDataLoader.load_data(filename, index_name, indicators)
-        return cls(df, {i.name: i for i in indicators})
+    def load_from_file(cls, filename, data_config: CsvDataConfig):
+        df = CsvDataLoader.load_data(filename, data_config)
+        return cls(df, data_config)
 
     @property
-    def calculated_columns(self):
-        return list(self.calculated_columns_configs.keys())
+    def calculated_column_names(self):
+        return [x.name for x in self.data_config.calculated_columns]
 
     @property
     def time_interval(self):
@@ -31,7 +29,7 @@ class CsvDataWrapper(object):
             return self.data.loc[[k for k in key]]
         # useful for grabbing subsets
         elif isinstance(key, slice):
-            return CsvDataWrapper(self.data.iloc[key], self.calculated_columns_configs)
+            return CsvDataWrapper(self.data.iloc[key], self.data_config)
         else:
             return self.data[key]
 
@@ -39,20 +37,15 @@ class CsvDataWrapper(object):
         return len(self.data)
 
     def copy(self):
-        return CsvDataWrapper(self.data.copy(), self.calculated_columns_configs)
+        return CsvDataWrapper(self.data.copy(),self.data_config)
 
     def to_csv(self, filename=None):
         self.data.to_csv(filename)
 
-    def set_indicators(self, new_indicators: List[CalculatedColumnConfig]):
-        self.data = CsvDataLoader.update_calculated_if_missing(
-            self.data, new_indicators)
-        self.calculated_columns_configs = {i.name: i for i in new_indicators}
-
     def append_and_refresh_indicators(self, data: DataFrame):
         self.data = self.data.append(data)
         self.data.sort_index(inplace=True)
-        self.set_indicators(list(self.calculated_columns_configs.values()))
+        self.data = CsvDataLoader.update_calculated_if_missing(self.data, self.data_config)
     
     def get_horizoned_data(self, data_config: CsvDataConfig):
         return CsvDataLoader.get_horizon_dataset(self.data, data_config)

@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
-from models.bases.ModelBase import ModelBase
+from models.ModelWrapper import ModelWrapper
 from data.configs.DataConfig import DataConfig
 
 MODEL_REF_FILENAME = 'data/saved_models/saved_model_map.json'
@@ -10,7 +10,7 @@ MODEL_REF_FILENAME = 'data/saved_models/saved_model_map.json'
 @dataclass
 class TrainedModelReference:
     filepath: str
-    model: ModelBase
+    model: ModelWrapper
     dataconfig: DataConfig
     fitness: float
 
@@ -18,7 +18,7 @@ class SavedModelService:
     def get_by_name(self,name):
         return SavedModelService.__load__()[name]
     
-    def get_by_model_base(self,model_base: ModelBase):
+    def get_by_model_base(self,model_base: ModelWrapper):
         refs = SavedModelService.__load__()
         refs_by_model = {v.model:v for v in refs.values()}
         return refs_by_model[model_base]

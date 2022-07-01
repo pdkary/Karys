@@ -35,7 +35,7 @@ def load_dataset(imageset, data_ref: ImageDataConfig):
         img = np.array(img).astype('float32')
         img = data_ref.load_scale_func(img)
         imgs.append(img)
-    return tf.data.Dataset.from_tensor_slices((np.array(imgs)))
+    return tf.data.Dataset.from_tensor_slices((np.array(imgs),np.ones(shape=(len(imgs),data_ref.features_size))))
     
 def save_images(filename, generated_images, data_ref: ImageDataConfig):
     image_count = 0

@@ -3,7 +3,7 @@ from data.configs.CsvDataConfig import CsvDataConfig
 from data.wrappers.CsvDataWrapper import CsvDataWrapper
 from matplotlib import pyplot as plt
 
-from models.bases.ModelBase import ModelBase
+from models.ModelWrapper import ModelWrapper
 from trainers.outputs.CsvModelOutput import CsvModelOutput
 
 

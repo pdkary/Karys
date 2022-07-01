@@ -5,12 +5,12 @@ import tensorflow as tf
 from data.configs.CsvDataConfig import CsvDataConfig
 from data.loaders import CsvDataLoader
 from data.wrappers.CsvDataWrapper import CsvDataWrapper
-from models.bases.ModelBase import ModelBase
+from models.ModelWrapper import ModelWrapper
 from trainers.outputs.CsvModelOutput import CsvModelOutput
 
 class CsvTrainer():
     def __init__(self,
-                 model_base: ModelBase,
+                 model_base: ModelWrapper,
                  train_datawrapper: CsvDataWrapper, 
                  test_datawrapper: CsvDataWrapper,
                  data_config: CsvDataConfig):

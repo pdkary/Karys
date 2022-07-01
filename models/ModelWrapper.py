@@ -2,15 +2,14 @@ from dataclasses import dataclass
 from typing import List, Tuple
 
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras.layers import Flatten, Input, Layer, Reshape
+from tensorflow.keras.layers import Flatten, Input, Layer, Reshape, Dense
 from tensorflow.keras.losses import Loss
 from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.optimizers import Optimizer
 
 
 @dataclass
-class ModelBase():
+class ModelWrapper():
     input_shape: Tuple
     output_shape: Tuple
     layers: List[Layer]
@@ -35,8 +34,8 @@ class ModelBase():
             if self.flatten_input:
                 functional_model = Flatten()(self.input_layer)
 
-            for d in self.layers:
-                functional_model = d(functional_model)
+            for l in self.layers:
+                functional_model = l(functional_model)
 
             functional_model = Reshape(target_shape=self.output_shape)(functional_model)
             self.model = Model(

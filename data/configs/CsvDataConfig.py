@@ -22,8 +22,9 @@ class CalculatedColumnConfig(object):
 
 @dataclass
 class CsvDataConfig(DataConfig):
+    index_name: str
     data_columns: List[str]
-    calculated_column_configs: List[CalculatedColumnConfig]
+    calculated_columns: List[CalculatedColumnConfig]
     horizon: int
     lookahead: int
     null_calculated: bool = False
@@ -42,33 +43,35 @@ class CsvDataConfig(DataConfig):
 
     @property
     def input_columns(self) -> List[str]:
-        return [*self.data_columns, *self.calculated_columns]
+        return [*self.data_columns, *self.calculated_column_names]
 
     @property
     def output_columns(self) -> List[str]:
         if self.predict_calculated:
-            return [*self.data_columns, *self.calculated_columns]
+            return self.input_columns
         else:
             return self.data_columns
 
     @property
-    def calculated_columns(self) -> List[str]:
-        return [c.name for c in self.calculated_column_configs]
+    def calculated_column_names(self) -> List[str]:
+        return [c.name for c in self.calculated_columns]
 
     @property
     def calculated_column_str(self) -> str:
-        return "Calculated Columns=[" + ", ".join(self.calculated_columns) + "]"
+        return "Calculated Columns=[" + ", ".join(self.calculated_column_names) + "]"
 
     def __str__(self):
         return str(self.to_json())
 
     def to_json(self):
-        return dict(data_columns=self.data_columns,
-                    calculated_column_configs=[i.to_json()
-                                for i in self.calculated_column_configs],
+        return dict(index_name=self.index_name,
+                    data_columns=self.data_columns,
+                    calculated_columns=[i.to_json()
+                                for i in self.calculated_columns],
                     horizon=self.horizon,
                     lookahead=self.lookahead,
-                    null_calculated=self.null_calculated)
+                    null_calculated=self.null_calculated,
+                    predict_calculated=self.predict_calculated)
 
     def as_null_indicators(self):
         new_data_ref = copy(self)
