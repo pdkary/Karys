@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 from data.configs.TextDataConfig import TextDataConfig
 from data.loaders import TextDataLoader
@@ -20,6 +21,10 @@ class TextDataWrapper(DataWrapper):
     @property
     def size(self):
         return len(self.input_sentences)
+    
+    @property
+    def word_size(self):
+        return len(self.word_index)
 
     @classmethod
     def load_from_file(cls, filename: str, data_config: TextDataConfig):
@@ -29,24 +34,37 @@ class TextDataWrapper(DataWrapper):
     def get_train_dataset(self):
         train_size = int(self.train_test_ratio*self.size)
         if self.data_config.ignore_output:
-            train_data = tf.data.Dataset.from_tensor_slices((self.input_sentences[:train_size]))
+            inputs = self.input_sentences[:train_size]
+            inputs = inputs.astype(np.float64)/self.word_size if self.data_config.scale_input_output else inputs
+            train_data = tf.data.Dataset.from_tensor_slices((inputs))
         else:
-            train_data = tf.data.Dataset.from_tensor_slices((self.input_sentences[:train_size], self.predicted_sentences[:train_size]))
+            inputs = self.input_sentences[:train_size]
+            labels = self.predicted_sentences[:train_size]
+            inputs = inputs.astype(np.float64)/self.word_size if self.data_config.scale_input_output else inputs
+            labels = labels.astype(np.float64)/self.word_size if self.data_config.scale_input_output else labels
+            train_data = tf.data.Dataset.from_tensor_slices((inputs, labels))
         return train_data
     
     def get_test_dataset(self):
         train_size = int(self.train_test_ratio*self.size)
         if self.data_config.ignore_output:
-            test_data = tf.data.Dataset.from_tensor_slices((self.input_sentences[train_size:]))
+            inputs = self.input_sentences[train_size:]
+            inputs = inputs.astype(np.float64)/self.word_size if self.data_config.scale_input_output else inputs
+            test_data = tf.data.Dataset.from_tensor_slices((inputs))
         else:
-            test_data = tf.data.Dataset.from_tensor_slices((self.input_sentences[train_size:], self.predicted_sentences[train_size:]))
+            inputs = self.input_sentences[train_size:]
+            labels = self.predicted_sentences[train_size:]
+            inputs = inputs.astype(np.float64)/self.word_size if self.data_config.scale_input_output else inputs
+            labels = labels.astype(np.float64)/self.word_size if self.data_config.scale_input_output else labels
+            test_data = tf.data.Dataset.from_tensor_slices((inputs,labels))
         return test_data
 
     def is_valid_code(self,key):
         return int(key) in self.index_to_word
 
     def translate_sentence(self, word_code_list):
-        return " ".join([self.index_to_word[int(x)] for x in word_code_list if self.is_valid_code(x)])
+        scaled_list = [np.ceil(x*self.word_size) for x in word_code_list]
+        return " ".join([self.index_to_word[x] for x in scaled_list if x > 0])
 
     
 

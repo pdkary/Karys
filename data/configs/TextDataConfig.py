@@ -11,6 +11,7 @@ class TextDataConfig(DataConfig):
     input_sentences: int
     predicted_sentences: int = 1
     ignore_output: bool = False
+    scale_input_output: bool = True
 
     @property
     def input_shape(self) -> Tuple: 
