@@ -17,11 +17,13 @@ class TextGanTrainer(AbstractGanTrainer):
         discriminated_genr_images = self.discriminator.model(gen_out, training=True)
 
         ##ideally, the generator would produce images that would get discriminated as all 1s
-        genr_loss = self.generator.loss(tf.ones_like(discriminated_genr_images), discriminated_genr_images)
+        genr_g_loss = self.generator.loss(gen_labels, gen_out)
+        genr_d_loss = self.generator.loss(tf.ones_like(discriminated_genr_images), discriminated_genr_images)
         ##ideally, the discriminator would identify real images as all 1s
         disc_real_loss = self.discriminator.loss(tf.ones_like(discriminated_real_images), discriminated_real_images)
         ##ideally, the discriminator would identify generated images as all 0s
         disc_genr_loss = self.discriminator.loss(tf.zeros_like(discriminated_genr_images),discriminated_genr_images)
+        genr_loss = genr_g_loss + genr_d_loss
         disc_loss = disc_genr_loss + disc_real_loss
         return genr_loss, disc_loss
 
