@@ -43,9 +43,11 @@ class TextTrainer(object):
             running_loss += np.sum(losses)
         return running_loss
     
-    def propogate_from_seed(self, seed, lookahead):
+    def propogate_from_phrase(self, phrase, lookahead):
         new_out = []
-        current_in = seed
+        seed = [self.data_wrapper.word_index[w] for w in phrase.split(" ")]
+        assert len(seed) == self.generator.model.input_shape[-1]
+        current_in = np.array([seed])
         for i in range(lookahead):
             next_word_probs = self.generator.model(current_in,training=False)
             next_word = np.argmax(next_word_probs,axis=-1)[0]
