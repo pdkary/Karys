@@ -39,11 +39,13 @@ class TextDataWrapper(DataWrapper):
         input_sets = []
         label_sets = []
         IL= data_config.input_length
+        OL = data_config.output_length
+        L = IL+OL
         for sequence in train_sequences:
             N = len(sequence)
-            for i in range(N-IL-1):
+            for i in range(N-L):
                 input_sets.append(sequence[i:i+IL])
-                label_sets.append(sequence[i+IL:i+IL+1])
+                label_sets.append(sequence[i+IL:i+L])
         return cls(word_index, np.array(input_sets), np.array(label_sets), data_config)
     
     def get_train_dataset(self):
@@ -64,7 +66,7 @@ class TextDataWrapper(DataWrapper):
         return " ".join([self.index_to_word[x] for x in word_code_list if x > 0 ])
     
     def translate_sentences(self,sentence_list):
-        return "\n".join([self.translate_sentence(sentence) for sentence in sentence_list])
+        return [self.translate_sentence(sentence) for sentence in sentence_list]
 
     def show_sentence_n(self,n):
         sin = self.input_sentences[n]

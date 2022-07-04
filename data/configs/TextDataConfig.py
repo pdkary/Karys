@@ -8,6 +8,7 @@ from data.configs.DataConfig import DataConfig
 class TextDataConfig(DataConfig):
     vocab_size: int
     input_length : int
+    output_length : int
 
     @property
     def input_shape(self) -> Tuple: 
@@ -23,4 +24,4 @@ class TextDataConfig(DataConfig):
     def to_json(self):
         return dict(vocab_size=self.vocab_size,
                     input_length=self.input_length, 
-                    scale_data=self.scale_data)
+                    output_length=self.output_length)
