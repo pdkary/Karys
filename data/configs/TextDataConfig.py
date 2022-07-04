@@ -6,29 +6,21 @@ from data.configs.DataConfig import DataConfig
 
 @dataclass
 class TextDataConfig(DataConfig):
-    num_words: int
-    sentence_length : int
-    input_sentences: int
-    predicted_sentences: int = 1
-    ignore_output: bool = False
-    scale_input_output: bool = True
+    vocab_size: int
+    input_length : int
 
     @property
     def input_shape(self) -> Tuple: 
-        return (self.input_sentences, self.sentence_length)
+        return [self.input_length]
     
     @property
     def output_shape(self) -> Tuple:
-        if self.ignore_output:
-            return [self.sentence_length]
-        return (self.predicted_sentences, self.sentence_length)
+        return [self.vocab_size]
     
     def __str__(self):
         return str(self.to_json())
 
     def to_json(self):
-        return dict(num_words=self.num_words,
-                    sentence_length=self.sentence_length, 
-                    input_sentences=self.input_sentences, 
-                    predicted_sentences=self.predicted_sentences, 
-                    ignore_output=self.ignore_output)
+        return dict(vocab_size=self.vocab_size,
+                    input_length=self.input_length, 
+                    scale_data=self.scale_data)

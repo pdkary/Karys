@@ -5,3 +5,4 @@ numpy
 jupyter
 jupyterplot
 legitindicators
+scikit-learn

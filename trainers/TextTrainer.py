@@ -1,47 +1,59 @@
 import numpy as np
 import tensorflow as tf
-from data.configs.TextDataConfig import TextDataConfig
 from data.wrappers.DataWrapper import DataWrapper
 
 from data.wrappers.TextDataWrapper import TextDataWrapper
 from models.ModelWrapper import ModelWrapper
-from trainers.outputs.TextModelOutput import TextModelOutput
 
 class TextTrainer(object):
     def __init__(self,
                  model: ModelWrapper,
-                 data_wrapper: DataWrapper):
-        self.model_base: ModelWrapper = model
-        self.data_wrapper: DataWrapper = data_wrapper
+                 data_wrapper: TextDataWrapper):
+        self.generator: ModelWrapper = model
+        self.data_wrapper: TextDataWrapper = data_wrapper
         self.train_dataset = self.data_wrapper.get_train_dataset()
         self.test_dataset = self.data_wrapper.get_test_dataset()
+        self.most_recent_input = None
+    
+    def run_step(self,inputs, labels, training=True):
+        with tf.GradientTape() as grad_tape:
+            self.most_recent_input = inputs
+            outputs = self.generator.model(inputs,training=training)
+            z = np.zeros_like(outputs)
+            z[0][labels[0][0]] = 1.0
+            losses = self.generator.loss(z, outputs)
+            if training:
+                grads = grad_tape.gradient(losses, self.generator.model.trainable_variables)
+                self.generator.optimizer.apply_gradients(zip(grads, self.generator.model.trainable_variables))
+        return losses
 
     def train(self, batch_size, num_batches):
         running_loss = 0.0
-        dataset = self.train_dataset.batch(batch_size).shuffle(buffer_size=512).take(num_batches)
+        dataset = self.train_dataset.shuffle(buffer_size=512).batch(batch_size).take(num_batches)
         for inputs, labels in list(dataset.as_numpy_iterator()):
-            with tf.GradientTape() as grad_tape:
-                outputs = self.model_base.model(inputs,training=True)
-                losses = self.model_base.loss(labels, outputs)
-                running_loss += np.sum(losses)
-                grads = grad_tape.gradient(losses, self.model_base.model.trainable_variables)
-                self.model_base.optimizer.apply_gradients(zip(grads, self.model_base.model.trainable_variables))
+            losses = self.run_step(inputs,labels,training=True)
+            running_loss += np.sum(losses)
         return running_loss
     
     def test(self, batch_size, num_batches):
         running_loss = 0.0
-        output = TextModelOutput()
-        dataset = self.test_dataset.batch(batch_size).shuffle(buffer_size=512).take(num_batches)
-        translate = lambda x: self.text_data_wrapper.translate_sentence(x)
+        dataset = self.test_dataset.shuffle(buffer_size=512).batch(batch_size).take(num_batches)
         for inputs, labels in list(dataset.as_numpy_iterator()):
-            outputs = self.model_base.model(inputs,training=True)
-            for i,o in zip(inputs,outputs):
-                i_s = [translate(x) for x in i]
-                o_s = [translate(x) for x in o.numpy()]
-                output.add_output(i_s,o_s)
-            losses = self.model_base.loss(labels, outputs)
+            losses = self.run_step(inputs,labels,training=True)
             running_loss += np.sum(losses)
-        return running_loss, output
+        return running_loss
+    
+    def propogate_from_seed(self, seed, lookahead):
+        new_out = []
+        current_in = seed
+        for i in range(lookahead):
+            next_word_probs = self.generator.model(current_in,training=False)
+            next_word = np.argmax(next_word_probs,axis=-1)[0]
+            new_out.append(self.data_wrapper.index_to_word[next_word])
+            current_in = np.array([np.append(current_in[0][1:], next_word)])
+        return " ".join(new_out)
+
+        
 
 
 
