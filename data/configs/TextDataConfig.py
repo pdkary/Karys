@@ -18,6 +18,10 @@ class TextDataConfig(DataConfig):
     def output_shape(self) -> Tuple:
         return [self.vocab_size]
     
+    @property
+    def label_shape(self) -> Tuple:
+        return [self.output_length]
+    
     def __str__(self):
         return str(self.to_json())
 
