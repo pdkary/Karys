@@ -52,14 +52,16 @@ class ClassificationTrainer(object):
         target_input_dataset = batched_target_input[:num_batches]
         noise_input_dataset = batched_noise_input[:num_batches]
 
-        for target_input, noise_input in zip(target_input_dataset, noise_input_dataset):
-            with tf.GradientTape() as grad_tape:
+        with tf.GradientTape() as grad_tape:
+            running_loss = None
+            for target_input, noise_input in zip(target_input_dataset, noise_input_dataset):
                 target_loss, noise_loss = self.test_step(target_input, noise_input)
                 target_loss_bucket.append(target_loss)
                 noise_loss_bucket.append(noise_loss)
+                running_loss = target_loss + noise_loss if running_loss is None else running_loss + target_loss + noise_loss
                 
-                classifier_grads = grad_tape.gradient(target_loss + noise_loss, self.classifier.model.trainable_variables)
-                self.classifier.optimizer.apply_gradients(zip(classifier_grads, self.classifier.model.trainable_variables))
+            classifier_grads = grad_tape.gradient(running_loss, self.classifier.model.trainable_variables)
+            self.classifier.optimizer.apply_gradients(zip(classifier_grads, self.classifier.model.trainable_variables))
         return np.sum(target_loss_bucket,axis=0), np.sum(noise_loss_bucket,axis=0)
 
     def test(self, batch_size, num_batches) -> np.float32:
