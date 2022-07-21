@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from data.labels.CategoricalLabel import CategoricalLabel
+from data.labels.CategoricalLabel import BatchedCategoricalLabel
 
 
 from data.wrappers.DataWrapper import DataWrapper
@@ -24,19 +24,20 @@ class ClassificationTrainer(object):
         self.noise_train_data = self.noise_input.get_train_dataset()
         self.noise_test_data = self.noise_input.get_validation_dataset()
 
-        self.label_generator = CategoricalLabel(classifier.output_shape[-1])
+        self.label_generator = BatchedCategoricalLabel(classifier.output_shape[-1])
         self.most_recent_target_output = None
         self.most_recent_noise_output = None
 
     def test_step(self, target_input, noise_input, training=True):
+        batch_size = target_input.shape[0]
         classified_target = self.classifier.model(target_input, training=training)
         classified_noise = self.classifier.model(noise_input, training=training)
 
         self.most_recent_target_output = list(zip(target_input, classified_target))
         self.most_recent_noise_output = list(zip(noise_input, classified_noise))
 
-        succ = self.label_generator.succ()
-        fail = self.label_generator.fail()
+        succ = self.label_generator.succ(batch_size)
+        fail = self.label_generator.fail(batch_size)
 
         target_loss = self.classifier.loss(succ, classified_target)
         noise_loss = self.classifier.loss(fail, classified_noise)
