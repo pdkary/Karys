@@ -36,11 +36,8 @@ class ClassificationTrainer(object):
         self.most_recent_target_output = list(zip(target_input, classified_target))
         self.most_recent_noise_output = list(zip(noise_input, classified_noise))
 
-        succ = self.label_generator.succ(batch_size)
-        fail = self.label_generator.fail(batch_size)
-
-        target_loss = self.classifier.loss(succ, classified_target)
-        noise_loss = self.classifier.loss(fail, classified_noise)
+        target_loss = self.classifier.loss(self.label_generator.get_single_categories(0, batch_size), classified_target)
+        noise_loss  = self.classifier.loss(self.label_generator.get_single_categories(1, batch_size), classified_noise)
         return target_loss, noise_loss
 
     def train(self, batch_size, num_batches) -> np.float32:
