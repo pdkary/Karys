@@ -63,7 +63,7 @@ class ClassificationTrainer(object):
                 
                 classifier_grads = grad_tape.gradient(target_loss + noise_loss, self.classifier.model.trainable_variables)
                 self.classifier.optimizer.apply_gradients(zip(classifier_grads, self.classifier.model.trainable_variables))
-        return np.sum(np.mean(target_loss_bucket,axis=0)), np.sum(np.mean(noise_loss_bucket,axis=0))
+        return np.sum(target_loss_bucket,axis=0), np.sum(noise_loss_bucket,axis=0)
 
     def test(self, batch_size, num_batches) -> np.float32:
         target_loss_bucket, noise_loss_bucket = [], []
@@ -80,5 +80,5 @@ class ClassificationTrainer(object):
             target_loss, noise_loss = self.test_step(target_input, noise_input, training=False)
             target_loss_bucket.append(target_loss)
             noise_loss_bucket.append(noise_loss)
-        return np.sum(np.mean(target_loss_bucket,axis=0)), np.sum(np.mean(noise_loss_bucket,axis=0))
+        return np.sum(target_loss_bucket,axis=0), np.sum(noise_loss_bucket,axis=0)
         
