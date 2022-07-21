@@ -61,7 +61,7 @@ class BatchedCategoricalLabel():
     def get_multi_categories(self, labels_arr, batch_size):
         return np.array([self.category_label_generator.get_multi_category(labels_arr) for x in range(batch_size)])
     
-    def get_single_categories(self, label_int, batch_size):
+    def get_single_category(self, label_int, batch_size):
         return np.array([self.category_label_generator.get_single_category(label_int) for x in range(batch_size)])
     
     def succ(self, batch_size):

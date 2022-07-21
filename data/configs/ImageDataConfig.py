@@ -27,7 +27,6 @@ def map_to_0_1(input_arr):
 class ImageDataConfig(DataConfig):
     image_shape: Tuple
     image_type: str
-    features_size: int
     flip_lr: bool = True
     preview_rows: int = 3
     preview_cols: int = 4

@@ -93,9 +93,8 @@ class ImageDataWrapper(DataWrapper):
         im = Image.fromarray(image_array.astype(np.uint8))
         im.save(filename)
     
-    def save_classified_images(self, filename, target_images_with_labels, noise_imaegs_with_labels):
+    def save_classified_images(self, filename, target_images_with_labels, noise_imaegs_with_labels, img_size = 32):
         image_shape = target_images_with_labels[0][0].shape
-        img_size = 32
         channels = image_shape[-1]
 
         preview_height = self.data_config.preview_rows*img_size + (self.data_config.preview_rows + 1)*self.data_config.preview_margin
