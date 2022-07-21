@@ -24,7 +24,8 @@ class ClassificationTrainer(object):
         self.noise_train_data = self.noise_input.get_train_dataset()
         self.noise_test_data = self.noise_input.get_validation_dataset()
 
-        self.label_generator = BatchedCategoricalLabel(classifier.output_shape[-1])
+        ##label shape will be [a b c d]^T where a hot dog has values [1 1 0 0] and not hot dog has [0 0 1 1]
+        self.label_generator = BatchedCategoricalLabel(4)
         self.most_recent_target_output = None
         self.most_recent_noise_output = None
 
@@ -36,8 +37,11 @@ class ClassificationTrainer(object):
         self.most_recent_target_output = list(zip(target_input, classified_target))
         self.most_recent_noise_output = list(zip(noise_input, classified_noise))
 
-        target_loss = self.classifier.loss(self.label_generator.get_single_categories(0, batch_size), classified_target)
-        noise_loss  = self.classifier.loss(self.label_generator.get_single_categories(1, batch_size), classified_noise)
+        hot_dog_label = self.label_generator.get_multi_categories([0,1], batch_size)
+        not_hot_dog_label = self.label_generator.get_multi_categories([2,3], batch_size)
+
+        target_loss = self.classifier.loss(hot_dog_label, classified_target)
+        noise_loss  = self.classifier.loss(not_hot_dog_label, classified_noise)
         return target_loss, noise_loss
 
     def train(self, batch_size, num_batches) -> np.float32:

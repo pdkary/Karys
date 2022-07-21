@@ -111,8 +111,8 @@ class ImageDataWrapper(DataWrapper):
                 img, label = target_images_with_labels[row+col] if use_target else noise_imaegs_with_labels[row+col]
                 
                 max_label = np.argmax(label)
-                out_label = "HOT DOG" if max_label == 0 else "NOT HOT DOG"
-                pass_fail = "PASS" if (max_label == 0 and use_target) or (max_label == 1 and not use_target) else "FAIL"
+                out_label = "HOT DOG" if max_label in [0,1] else "NOT HOT DOG"
+                pass_fail = "PASS" if (max_label in [0,1] and use_target) or (max_label in [2,3] and not use_target) else "FAIL"
 
                 text_label = out_label + " || " + pass_fail
                 img = self.data_config.save_scale_func(img)
