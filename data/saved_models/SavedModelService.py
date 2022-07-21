@@ -1,41 +1,29 @@
 import json
-from dataclasses import dataclass
-from typing import Dict, List, Tuple
 
+from keras.optimizers import Optimizer
+from keras.losses import Loss
 from models.ModelWrapper import ModelWrapper
-from data.configs.DataConfig import DataConfig
-
-MODEL_REF_FILENAME = 'data/saved_models/saved_model_map.json'
-
-@dataclass
-class TrainedModelReference:
-    filepath: str
-    model: ModelWrapper
-    dataconfig: DataConfig
-    fitness: float
 
 class SavedModelService:
-    def get_by_name(self,name):
-        return SavedModelService.__load__()[name]
-    
-    def get_by_model_base(self,model_base: ModelWrapper):
-        refs = SavedModelService.__load__()
-        refs_by_model = {v.model:v for v in refs.values()}
-        return refs_by_model[model_base]
+    def __init__(self, model_ref_filepath):
+        self.model_ref_filepath = model_ref_filepath
+        self.model_refs = {}
+        self.load_model_refs()
 
-    @staticmethod
-    def update(new_refs: Dict[str,TrainedModelReference]):
-        refs = SavedModelService.__load__()
-        refs = {**refs,**new_refs}
-        SavedModelService.__save__(refs)
+    def load_model_by_name(self,name, optimizer: Optimizer, loss: Loss) -> ModelWrapper:
+        self.load_model_refs()
+        filepath = self.model_refs[name]
+        return ModelWrapper.load_from_filepath(filepath, optimizer, loss)
 
-    @staticmethod
-    def __load__():
-        with open(MODEL_REF_FILENAME,'r') as model_map_file:
-            return json.load(model_map_file)
-    
-    @staticmethod
-    def __save__(refs: Dict[str,TrainedModelReference]):
-        with open(MODEL_REF_FILENAME,'w') as model_map_file:
-            return json.dump(refs,model_map_file)
+    def save_model(self, name: str, filepath: str, model_wrapper: ModelWrapper):
+        self.model_refs[name] = filepath + "/" + name
+        model_wrapper.save(filepath + "/" + name)
+        self.save_all()
 
+    def load_model_refs(self):
+        with open(self.model_ref_filepath,'r') as model_map_file:
+            self.model_refs = {**self.model_refs, **json.load(model_map_file)}
+        
+    def save_all(self):
+        with open(self.model_ref_filepath,'w') as model_map_file:
+            return json.dump(self.model_refs, model_map_file)

@@ -2,6 +2,7 @@
 
 examples/discriminator/test_input/**/*.png
 examples/discriminator/test_input/**/*.jpg
+examples/discriminator/test_model_output/*
 
 
 # Byte-compiled / optimized / DLL files
