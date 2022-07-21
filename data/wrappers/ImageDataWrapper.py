@@ -108,7 +108,7 @@ class ImageDataWrapper(DataWrapper):
             for col in range(self.data_config.preview_cols):
                 use_target = col % 2 == 0
 
-                img, label = target_images_with_labels[row*col] if use_target else noise_imaegs_with_labels[row*col]
+                img, label = target_images_with_labels[(row+1)*col] if use_target else noise_imaegs_with_labels[(row+1)*col]
                 
                 max_label = np.argmax(label)
                 out_label = "HOT DOG" if max_label == 0 else "NOT HOT DOG"
