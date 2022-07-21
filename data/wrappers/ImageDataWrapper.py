@@ -129,5 +129,6 @@ class ImageDataWrapper(DataWrapper):
                 axes[row,col].set_title(text_label, fontsize=img_size*2)
 
         fig.savefig(filename)
+        plt.close()
 
     
