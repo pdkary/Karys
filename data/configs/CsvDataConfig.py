@@ -37,9 +37,9 @@ class CsvDataConfig(DataConfig):
     @property
     def output_shape(self) -> Tuple:
         if self.predict_calculated:
-            return (self.lookahead, len(self.input_columns))
+            return [len(self.input_columns)]
         else:
-            return (self.lookahead, len(self.data_columns))
+            return [len(self.data_columns)]
 
     @property
     def input_columns(self) -> List[str]:
@@ -55,6 +55,10 @@ class CsvDataConfig(DataConfig):
     @property
     def calculated_column_names(self) -> List[str]:
         return [c.name for c in self.calculated_columns]
+
+    @property
+    def target_column_names(self) -> List[str]:
+        return [f"target_{c}" for c in self.output_columns]
 
     @property
     def calculated_column_str(self) -> str:

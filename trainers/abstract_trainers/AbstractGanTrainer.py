@@ -24,9 +24,9 @@ class AbstractGanTrainer(ABC):
 
     def load_datasets(self):
         self.gen_train_dataset = self.generator_input.get_train_dataset()
-        self.gen_test_dataset = self.generator_input.get_test_dataset()
+        self.gen_test_dataset = self.generator_input.get_validation_dataset()
         self.disc_train_dataset = self.discriminator_input.get_train_dataset()
-        self.disc_test_dataset = self.discriminator_input.get_test_dataset()
+        self.disc_test_dataset = self.discriminator_input.get_validation_dataset()
     
     @abstractmethod
     def test_step(self,gen_input, gen_labels, disc_input, disc_labels):

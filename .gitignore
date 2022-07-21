@@ -1,3 +1,9 @@
+#descriminator test becasue lots of images
+
+examples/discriminator/test_input/**/*.png
+examples/discriminator/test_input/**/*.jpg
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

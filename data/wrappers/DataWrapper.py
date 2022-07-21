@@ -6,9 +6,9 @@ from data.configs.DataConfig import DataConfig
 
 
 class DataWrapper(ABC):
-    def __init__(self, data_config: DataConfig, train_test_ratio = 0.7):
+    def __init__(self, data_config: DataConfig, validation_percentage = 0.05):
         self.data_config = data_config
-        self.train_test_ratio = train_test_ratio
+        self.validation_percentage = validation_percentage
 
     @abstractclassmethod
     def load_from_file(cls, filename: str, data_config: DataConfig):
@@ -19,7 +19,7 @@ class DataWrapper(ABC):
         pass
 
     @abstractmethod
-    def get_test_dataset(self):
+    def get_validation_dataset(self):
         pass
 
 
