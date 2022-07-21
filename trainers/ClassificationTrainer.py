@@ -78,6 +78,6 @@ class ClassificationTrainer(object):
     def train_noise(self, batch_size, num_batches):
         return self.__train__(self.noise_train_data, self.train_noise_batch, batch_size, num_batches)
 
-    def test_target(self, batch_size, num_batches):
+    def test_noise(self, batch_size, num_batches):
         return self.__train__(self.noise_test_data, self.train_noise_batch, batch_size, num_batches, training=False)
         
