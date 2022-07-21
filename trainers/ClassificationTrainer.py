@@ -39,7 +39,7 @@ class ClassificationTrainer(object):
         argmax_noise = np.argmax(classified_noise, axis=1)
         target_class_labels = [self.label_generator.label_dict[x] for x in argmax_target]
         noise_class_labels = [self.label_generator.label_dict[x] for x in argmax_noise]
-        
+
         self.most_recent_target_output = list(zip(target_input, target_class_labels))
         self.most_recent_noise_output = list(zip(noise_input, noise_class_labels))
 
