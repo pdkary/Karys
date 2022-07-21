@@ -24,8 +24,9 @@ class ClassificationTrainer(object):
         self.noise_train_data = self.noise_input.get_train_dataset()
         self.noise_test_data = self.noise_input.get_validation_dataset()
 
-        ##label shape will be [a b c d]^T where a hot dog has values [1 1 0 0] and not hot dog has [0 0 1 1]
-        self.label_generator = BatchedCategoricalLabel(4)
+        ##label shape will be [a b c]^T where a hot dog has values [1 0 0] and not hot dog has [0 0 1], [0 1 0] implies unknown
+        label_dict = {0:"HOT DOG", 1:"UNSURE", 2:"NOT HOT DOG"}
+        self.label_generator = BatchedCategoricalLabel(3, label_dict)
         self.most_recent_target_output = None
         self.most_recent_noise_output = None
 
@@ -34,11 +35,16 @@ class ClassificationTrainer(object):
         classified_target = self.classifier.model(target_input, training=training)
         classified_noise = self.classifier.model(noise_input, training=training)
 
-        self.most_recent_target_output = list(zip(target_input, classified_target))
-        self.most_recent_noise_output = list(zip(noise_input, classified_noise))
+        argmax_target = np.argmax(classified_target, axis=1)
+        argmax_noise = np.argmax(classified_noise, axis=1)
+        target_class_labels = [self.label_generator.label_dict[x] for x in argmax_target]
+        noise_class_labels = [self.label_generator.label_dict[x] for x in argmax_noise]
+        
+        self.most_recent_target_output = list(zip(target_input, target_class_labels))
+        self.most_recent_noise_output = list(zip(noise_input, noise_class_labels))
 
-        hot_dog_label = self.label_generator.get_multi_categories([0,1], batch_size)
-        not_hot_dog_label = self.label_generator.get_multi_categories([2,3], batch_size)
+        hot_dog_label = self.label_generator.get_single_categories(0, batch_size)
+        not_hot_dog_label = self.label_generator.get_single_categories(2, batch_size)
 
         target_loss = self.classifier.loss(hot_dog_label, classified_target)
         noise_loss  = self.classifier.loss(not_hot_dog_label, classified_noise)

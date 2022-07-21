@@ -1,8 +1,15 @@
+from typing import Dict
 import numpy as np
 
 class CategoricalLabel():
-    def __init__(self,label_dim):
+    def __init__(self,label_dim, label_dict: Dict[int,str]):
+        assert len(label_dict) == label_dim
         self.label_dim = label_dim
+        self.label_dict = label_dict
+    
+    def set_label_dict(self, label_dict: Dict[int,str]):
+        assert len(label_dict) == self.label_dim
+        self.label_dict = label_dict
     
     def get_single_category(self,label_int):
         z = np.zeros(shape=[self.label_dim])
@@ -40,9 +47,10 @@ class CategoricalLabel():
             return self.get_no_categories()
 
 class BatchedCategoricalLabel():
-    def __init__(self, label_dim):
+    def __init__(self, label_dim, label_dict: Dict[int,str] = None):
         self.label_dim = label_dim
-        self.category_label_generator = CategoricalLabel(label_dim)
+        self.label_dict = label_dict
+        self.category_label_generator = CategoricalLabel(label_dim, label_dict)
     
     def get_all_categories(self, batch_size):
         return np.array([self.category_label_generator.get_all_categories() for x in range(batch_size)])
@@ -63,10 +71,11 @@ class BatchedCategoricalLabel():
         return np.array([self.category_label_generator.fail() for x in range(batch_size)])
 
 class SequenceCategoricalLabel():
-    def __init__(self, sequence_length, label_dim):
+    def __init__(self, sequence_length, label_dim, label_dict: Dict[int,str] = None):
         self.sequence_length = sequence_length
         self.label_dim = label_dim
-        self.category_label_generator = CategoricalLabel(label_dim)
+        self.label_dict = label_dict
+        self.category_label_generator = CategoricalLabel(label_dim, label_dict)
     
     def get_category_sequence(self, category_int_arr):
         return np.array([self.category_label_generator.get_single_category(i) for i in category_int_arr])
