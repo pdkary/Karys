@@ -12,8 +12,8 @@ def batch_dict(adict, batch_size):
     N = len(adict)//batch_size
     batches = []
     for i in range(N):
-        b_names = list(adict.keys())[i:(i+1)*batch_size]
-        b_vals = np.array(list(adict.values())[i:(i+1)*batch_size])
+        b_names = list(adict.keys())[i*batch_size:(i+1)*batch_size]
+        b_vals = np.array(list(adict.values())[i*batch_size:(i+1)*batch_size])
         batches.append((b_names, b_vals))
     return batches
 
