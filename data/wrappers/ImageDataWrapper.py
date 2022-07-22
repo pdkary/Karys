@@ -1,8 +1,10 @@
+from tkinter import image_names
 from matplotlib import pyplot as plt
 import numpy as np
 from PIL import Image
+import json
 
-from typing import List
+from typing import Dict, List
 from data.configs.ImageDataConfig import ImageDataConfig
 
 from data.wrappers.DataWrapper import DataWrapper
@@ -19,56 +21,75 @@ def convert_image(img, channels):
     else:
         raise ValueError("Channels must be one of [1,3,4]")
 
+def load_labels(filepath):
+    labels = {}
+    with open(filepath, 'r') as f:
+        labels = json.load(f)
+    return labels
+
 def load_images(dirpath: str, data_ref: ImageDataConfig):
-    glob_glob = dirpath + "/*" + data_ref.image_type
+    glob_glob = dirpath + "**/*" + data_ref.image_type
     images = glob.glob(glob_glob)
+
     print("LOADING FROM %s" % (glob_glob))
     print("LOADING %d IMAGES" % len(images))
-    x = []
+    x = {}
     num_images = len(images)
     for n, i in enumerate(images):
         if 100*n/num_images >= data_ref.load_n_percent:
             break
-        x.append(Image.open(i))
+        image_name = i.split("\\")[-1]
+        x[image_name] = Image.open(i)
     print("LOADED %d IMAGES" % len(x))
     return x
 
 class ImageDataWrapper(DataWrapper):
-    def __init__(self,image_set: List, data_config: ImageDataConfig, validation_percentage: float = 0.05):
+    def __init__(self, 
+                 image_set: Dict[str, np.ndarray], 
+                 image_labels: Dict[str,str],
+                 data_config: ImageDataConfig, 
+                 validation_percentage: float = 0.05): 
         super(ImageDataWrapper, self).__init__(data_config, validation_percentage)
-        self.image_set: np.ndarray = image_set
+        self.image_set = image_set
+        self.image_labels = image_labels
         self.data_config = data_config
     
     @classmethod
-    def load_from_file(cls,filename, data_config: ImageDataConfig, validation_percentage: float = 0.05):
-        images = load_images(filename, data_config)
+    def load_from_file(cls, image_filepath, label_filepath, data_config: ImageDataConfig, validation_percentage: float = 0.05):
+        images = load_images(image_filepath, data_config)
+        labels = load_labels(label_filepath)
 
         img_rows, img_cols, channels = data_config.image_shape
-        imgs = []
-        for img in images:
+        imgs = {}
+        for img_name in images.keys():
+            img = images[img_name]
             img = convert_image(img,channels)
             img = img.resize(size=(img_rows, img_cols),resample=Image.ANTIALIAS)
             img = np.array(img).astype('float32')
             img = data_config.load_scale_func(img)
-            imgs.append(img)
-        return cls(np.array(imgs), data_config, validation_percentage)
+            imgs[img_name] = img
+        return cls(imgs, labels, data_config, validation_percentage)
     
-    def get_train_dataset(self):
+    def get_train_dataset(self) -> Dict[str, np.ndarray]:
         validation_length = int(len(self.image_set)*self.validation_percentage)
-        return self.image_set[:-validation_length]
+        train_keys = list(self.image_set.keys())[:-validation_length]
+        return {k:self.image_set[k] for k in train_keys}
     
-    def get_validation_dataset(self):
+    def get_validation_dataset(self) -> Dict[str, np.ndarray]:
         validation_length = int(len(self.image_set)*self.validation_percentage)
-        return self.image_set[-validation_length:]
+        validation_keys = list(self.image_set.keys())[-validation_length:]
+        return {k:self.image_set[k] for k in validation_keys}
     
     def save_generated_images(self, filename, generated_images):
         image_count = 0
         image_shape = generated_images.shape[-3:]
         img_size = image_shape[1]
         channels = image_shape[-1]
-        preview_height = self.data_config.preview_rows*img_size + (self.data_config.preview_rows + 1)*self.data_config.preview_margin
-        preview_width = self.data_config.preview_cols*img_size + (self.data_config.preview_cols + 1)*self.data_config.preview_margin
+
+        R, C, M = self.data_config.preview_rows, self.data_config.preview_cols, self.data_config.preview_margin
         
+        preview_height = R*img_size + (R + 1)*M
+        preview_width = C*img_size + (C + 1)*M
         if channels ==1:
             image_array = np.full((preview_height, preview_width), 255, dtype=np.uint8)
         else:
@@ -93,25 +114,25 @@ class ImageDataWrapper(DataWrapper):
         im = Image.fromarray(image_array.astype(np.uint8))
         im.save(filename)
     
-    def save_classified_images(self, filename, target_images_with_labels, noise_imaegs_with_labels, img_size = 32):
-        image_shape = target_images_with_labels[0][0].shape
+    def save_classified_images(self, filename, images_with_labels_and_preds, img_size = 32):
+        image_shape = images_with_labels_and_preds[0][0].shape
         channels = image_shape[-1]
 
-        preview_height = self.data_config.preview_rows*img_size + (self.data_config.preview_rows + 1)*self.data_config.preview_margin
-        preview_width = self.data_config.preview_cols*img_size + (self.data_config.preview_cols + 1)*self.data_config.preview_margin
+        R, C, M = self.data_config.preview_rows, self.data_config.preview_cols, self.data_config.preview_margin
+        
+        preview_height = R*img_size + (R + 1)*M
+        preview_width = C*img_size + (C + 1)*M
         
         fig,axes = plt.subplots(self.data_config.preview_rows,self.data_config.preview_cols)
         fig.set_figheight(preview_height)
         fig.set_figwidth(preview_width)
 
-        for row in range(self.data_config.preview_rows):
-            for col in range(self.data_config.preview_cols):
-                use_target = col % 2 == 0
+        for row in range(R):
+            for col in range(C):
+                img, label, pred = images_with_labels_and_preds[row*R+col]
+                pass_fail = "PASS" if np.all(pred == label) else "FAIL"
 
-                img, label = target_images_with_labels[row+col] if use_target else noise_imaegs_with_labels[row+col]
-                pass_fail = "PASS" if (label == "HOT DOG" and use_target) or (label == "NOT HOT DOG" and not use_target) else "FAIL"
-
-                text_label = label + " || " + pass_fail
+                text_label = pred + " || " + pass_fail
                 img = self.data_config.save_scale_func(img)
 
                 if channels == 1:
@@ -119,7 +140,7 @@ class ImageDataWrapper(DataWrapper):
                 else:
                     img = np.array(img)
                     img = Image.fromarray((img).astype(np.uint8))
-                    img = img.resize((img_size,img_size),Image.BICUBIC)
+                    img = img.resize((img_size,img_size), Image.BICUBIC)
                     img = np.asarray(img)
                     
                 axes[row,col].imshow(img)

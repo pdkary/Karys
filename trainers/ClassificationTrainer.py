@@ -1,79 +1,69 @@
 import numpy as np
 import tensorflow as tf
 
-from data.wrappers.DataWrapper import DataWrapper
+from data.wrappers.ImageDataWrapper import ImageDataWrapper
 from models.ClassificationModel import ClassificationModel
 
 def batch(ndarr, batch_size):
     N = len(ndarr)//batch_size
     return np.array(np.split(ndarr[:N*batch_size], N))
 
+def batch_dict(adict, batch_size):
+    N = len(adict)//batch_size
+    batches = []
+    for i in range(N):
+        b_names = list(adict.keys())[i:(i+1)*batch_size]
+        b_vals = np.array(list(adict.values())[i:(i+1)*batch_size])
+        batches.append((b_names, b_vals))
+    return batches
+
 class ClassificationTrainer(object):
     def __init__(self,
                  classifier: ClassificationModel,
-                 target_input: DataWrapper,
-                 noise_input: DataWrapper):
+                 labelled_input: ImageDataWrapper):
         self.classifier = classifier
-        self.target_input = target_input
-        self.noise_input = noise_input
+        self.labelled_input = labelled_input
 
-        self.target_train_data = self.target_input.get_train_dataset()
-        self.target_test_data = self.target_input.get_validation_dataset()
-        self.noise_train_data = self.noise_input.get_train_dataset()
-        self.noise_test_data = self.noise_input.get_validation_dataset()
+        self.labelled_train_data = self.labelled_input.get_train_dataset()
+        self.labelled_test_data = self.labelled_input.get_validation_dataset()
 
-        self.most_recent_target_output = None
-        self.most_recent_noise_output = None
+        self.most_recent_output = None
 
-    def __train__(self, dataset, batch_function, batch_size, num_batches, training=True):
+    def __run_batch__(self, batch_names, batch_data, training=True):
+        label_func = lambda x : self.classifier.label_generator.get_single_category(self.classifier.label_to_id[x])
+        
+        batch_labels = [ self.labelled_input.image_labels[n] for n in batch_names]
+        labels = [label_func(l) for l in batch_labels]
+        _, probs, preds = self.classifier.classify(batch_data, training)
+
+        self.most_recent_output = list(zip(batch_data, batch_labels, preds))
+        return self.classifier.loss(labels, probs)
+
+    def train(self, batch_size, num_batches):
         loss_bucket = []
-        batched_input = batch(dataset, batch_size)
+        batched_input = batch_dict(self.labelled_train_data, batch_size)
+
         np.random.shuffle(batched_input)
         input_dataset = batched_input[:num_batches]
 
-        for i in input_dataset:
+        for batch_names, batch_data in input_dataset:
             with tf.GradientTape() as grad_tape:
-                loss = batch_function(i,training)
+                loss = self.__run_batch__(batch_names, batch_data, training=True)
                 loss_bucket.append(loss)
                 
                 classifier_grads = grad_tape.gradient(loss, self.classifier.model.trainable_variables)
                 self.classifier.optimizer.apply_gradients(zip(classifier_grads, self.classifier.model.trainable_variables))
         return np.sum(loss_bucket, axis=0)
     
-    def __test__(self, dataset, batch_function, batch_size, num_batches, training=True):
+    def test(self, batch_size, num_batches):
         loss_bucket = []
-        batched_input = batch(dataset, batch_size)
-        np.random.shuffle(batched_input)
+        batched_input = batch_dict(self.labelled_test_data, batch_size)
 
+        np.random.shuffle(batched_input)
         input_dataset = batched_input[:num_batches]
-        for i in input_dataset:
-            loss = batch_function(i,training)
+
+        for batch_names, batch_data in input_dataset:
+            loss = self.__run_batch__(batch_names, batch_data, training=False)
             loss_bucket.append(loss)
         return np.sum(loss_bucket, axis=0)
-    
-    def train_target_batch(self, target_batch, training=True):
-        batch_size = target_batch.shape[0]
-        target_label = self.classifier.label_generator.get_single_category(0, batch_size)
-        _, class_probs, predicted_labels = self.classifier.classify(target_batch, training)
-        self.most_recent_target_output = list(zip(target_batch, predicted_labels))
-        return self.classifier.loss(target_label, class_probs)
-    
-    def train_noise_batch(self, noise_batch, training=True):
-        batch_size = noise_batch.shape[0]
-        noise_label = self.classifier.label_generator.get_single_category(2, batch_size)
-        _, class_probs, predicted_labels = self.classifier.classify(noise_batch, training)
-        self.most_recent_noise_output = list(zip(noise_batch, predicted_labels))
-        return self.classifier.loss(noise_label, class_probs)
-
-    def train_target(self, batch_size, num_batches):
-        return self.__train__(self.target_train_data, self.train_target_batch, batch_size, num_batches)
-
-    def test_target(self, batch_size, num_batches):
-        return self.__test__(self.target_test_data, self.train_target_batch, batch_size, num_batches, training=False)
-
-    def train_noise(self, batch_size, num_batches):
-        return self.__train__(self.noise_train_data, self.train_noise_batch, batch_size, num_batches)
-
-    def test_noise(self, batch_size, num_batches):
-        return self.__test__(self.noise_test_data, self.train_noise_batch, batch_size, num_batches, training=False)
         
