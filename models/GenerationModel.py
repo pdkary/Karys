@@ -13,3 +13,6 @@ class GenerationModel(ModelWrapper):
                  optimizer: Optimizer, 
                  loss: Loss):
         super(GenerationModel, self).__init__(input_shape, output_shape, layers, optimizer, loss)
+
+    def generate(self, noise_batch, training=False):
+        return self.model(noise_batch, training=training)

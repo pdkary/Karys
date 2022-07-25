@@ -1,11 +1,10 @@
 import re
-from tkinter import image_names
 from matplotlib import pyplot as plt
 import numpy as np
 from PIL import Image
 import json
 
-from typing import Dict, List
+from typing import Dict
 from data.configs.ImageDataConfig import ImageDataConfig
 
 from data.wrappers.DataWrapper import DataWrapper
@@ -60,7 +59,7 @@ class ImageDataWrapper(DataWrapper):
     def load_from_file_with_single_label(cls, image_filepath, label, data_config: ImageDataConfig, validation_percentage: float = 0.05):
         glob_glob = image_filepath + "**/*" + data_config.image_type
         images = glob.glob(glob_glob)
-        labels = {i:label for i in images}
+        labels = {re.split("[\\\/]+",i)[-1]:label for i in images}
         return ImageDataWrapper.load_from_file(image_filepath, labels, data_config, validation_percentage)
 
     @classmethod
