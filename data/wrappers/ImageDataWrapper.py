@@ -30,6 +30,7 @@ def load_labels(filepath):
 def load_images(dirpath: str, data_ref: ImageDataConfig):
     glob_glob = dirpath + "**/*" + data_ref.image_type
     images = glob.glob(glob_glob)
+    np.random.shuffle(images)
 
     print("LOADING FROM %s" % (glob_glob))
     print("LOADING %d IMAGES" % len(images))
@@ -132,7 +133,7 @@ class ImageDataWrapper(DataWrapper):
                 img, label, pred = images_with_labels_and_preds[row*R+col]
                 pass_fail = "PASS" if np.all(pred == label) else "FAIL"
 
-                text_label = pred + " || " + pass_fail
+                text_label = pred + " || " + label + " || " + pass_fail
                 img = self.data_config.save_scale_func(img)
 
                 if channels == 1:

@@ -47,7 +47,6 @@ class ImageDataConfig(DataConfig):
         return dict(image_shape=self.image_shape,
                     image_type=self.image_type,
                     flip=self.flip_lr,
-                    train_test_ratio=self.train_test_ratio,
                     preview_rows=self.preview_rows,
                     preview_cols=self.preview_cols,
                     preview_margin=self.preview_margin,
