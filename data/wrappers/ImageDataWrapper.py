@@ -1,3 +1,4 @@
+import re
 from tkinter import image_names
 from matplotlib import pyplot as plt
 import numpy as np
@@ -39,7 +40,7 @@ def load_images(dirpath: str, data_ref: ImageDataConfig):
     for n, i in enumerate(images):
         if 100*n/num_images >= data_ref.load_n_percent:
             break
-        image_name = i.split("\\")[-1]
+        image_name = re.split("[\\\/]+",i)[-1]
         x[image_name] = Image.open(i)
     print("LOADED %d IMAGES" % len(x))
     return x
@@ -56,10 +57,20 @@ class ImageDataWrapper(DataWrapper):
         self.data_config = data_config
     
     @classmethod
-    def load_from_file(cls, image_filepath, label_filepath, data_config: ImageDataConfig, validation_percentage: float = 0.05):
-        images = load_images(image_filepath, data_config)
-        labels = load_labels(label_filepath)
+    def load_from_file_with_single_label(cls, image_filepath, label, data_config: ImageDataConfig, validation_percentage: float = 0.05):
+        glob_glob = image_filepath + "**/*" + data_config.image_type
+        images = glob.glob(glob_glob)
+        labels = {i:label for i in images}
+        return ImageDataWrapper.load_from_file(image_filepath, labels, data_config, validation_percentage)
 
+    @classmethod
+    def load_from_files(cls, image_filepath, label_filepath, data_config: ImageDataConfig, validation_percentage: float = 0.05):
+        labels = load_labels(label_filepath)
+        return ImageDataWrapper.load_from_file(image_filepath, labels, data_config, validation_percentage)
+
+    @classmethod
+    def load_from_file(cls, image_filepath, labels: Dict[str,str], data_config: ImageDataConfig, validation_percentage: float = 0.05):
+        images = load_images(image_filepath, data_config)
         img_rows, img_cols, channels = data_config.image_shape
         imgs = {}
         for img_name in images.keys():
@@ -70,6 +81,7 @@ class ImageDataWrapper(DataWrapper):
             img = data_config.load_scale_func(img)
             imgs[img_name] = img
         return cls(imgs, labels, data_config, validation_percentage)
+
     
     def get_train_dataset(self) -> Dict[str, np.ndarray]:
         validation_length = int(len(self.image_set)*self.validation_percentage)
