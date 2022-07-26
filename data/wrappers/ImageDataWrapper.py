@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 from PIL import Image
 import json
+import os
 
 from typing import Dict
 from data.configs.ImageDataConfig import ImageDataConfig
@@ -52,7 +53,7 @@ class ImageDataWrapper(DataWrapper):
                  validation_percentage: float = 0.05): 
         super(ImageDataWrapper, self).__init__(data_config, validation_percentage)
         self.image_set = image_set
-        self.image_labels = image_labels
+        self.image_labels = {x:image_labels[x] for x in image_set.keys()}
         self.data_config = data_config
     
     @classmethod
@@ -66,6 +67,17 @@ class ImageDataWrapper(DataWrapper):
     def load_from_files(cls, image_filepath, label_filepath, data_config: ImageDataConfig, validation_percentage: float = 0.05):
         labels = load_labels(label_filepath)
         return ImageDataWrapper.load_from_file(image_filepath, labels, data_config, validation_percentage)
+
+    @classmethod
+    def load_from_labelled_directories(cls, base_dir, data_config: ImageDataConfig, validation_percentage: float = 0.05):
+        directory_glob = glob.glob(base_dir + '/*/')
+        label_dict = {}
+        for folder in directory_glob:
+            label = re.split("[\\\/]+",folder)[-2]
+            for filepath in glob.glob(folder+"/*"):
+                filename = os.path.basename(filepath)
+                label_dict[filename] = label
+        return ImageDataWrapper.load_from_file(base_dir, label_dict, data_config, validation_percentage)
 
     @classmethod
     def load_from_file(cls, image_filepath, labels: Dict[str,str], data_config: ImageDataConfig, validation_percentage: float = 0.05):
@@ -157,6 +169,41 @@ class ImageDataWrapper(DataWrapper):
                     
                 axes[row,col].imshow(img)
                 axes[row,col].set_title(text_label, fontsize=img_size*2)
+
+        fig.savefig(filename)
+        plt.close()
+    
+    def save_encoded_images(self, filename, images_encodings_labels, img_size = 32):
+        image_shape = images_encodings_labels[0][0].shape
+        encoding_dim = images_encodings_labels[0][1].shape[-1]
+        channels = image_shape[-1]
+
+        R, C, M = self.data_config.preview_rows, self.data_config.preview_cols, self.data_config.preview_margin
+        
+        preview_height = R*img_size + (R + 1)*M
+        preview_width = C*img_size + (C + 1)*M
+        
+        fig,axes = plt.subplots(R,C*2)
+        fig.set_figheight(preview_height)
+        fig.set_figwidth(preview_width)
+
+        for row in range(R):
+            for col in range(C):
+                img, encoding, label = images_encodings_labels[row*R+col]
+                img = self.data_config.save_scale_func(img)
+
+                if channels == 1:
+                    img = np.reshape(img,newshape=(img_size,img_size))
+                else:
+                    img = np.array(img)
+                    img = Image.fromarray((img).astype(np.uint8))
+                    img = img.resize((img_size,img_size), Image.BICUBIC)
+                    img = np.asarray(img)
+                    
+                axes[row,2*col].imshow(img)
+                axes[row,2*col+1].plot(range(encoding_dim), encoding)
+                axes[row,2*col].set_title(label, fontsize=img_size*2)
+                axes[row,2*col+1].set_title(label, fontsize=img_size*2)
 
         fig.savefig(filename)
         plt.close()

@@ -10,7 +10,7 @@ from data.configs.DataConfig import DataConfig
 def map_to_range(input_arr,new_max,new_min):
     img_max = float(np.max(input_arr))
     img_min = float(np.min(input_arr))
-    old_range = float(img_max - img_min + 1e-6)
+    old_range = float(img_max - img_min + 1e-7)
     new_range = (new_max - new_min)
     return new_range*(input_arr - img_min)/old_range + float(new_min)
 
