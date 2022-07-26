@@ -201,7 +201,7 @@ class ImageDataWrapper(DataWrapper):
                     img = np.asarray(img)
                     
                 axes[row,2*col].imshow(img)
-                axes[row,2*col+1].plot(range(encoding_dim), encoding)
+                axes[row,2*col+1].bar(range(encoding_dim), encoding)
                 axes[row,2*col].set_title(label, fontsize=img_size*2)
                 axes[row,2*col+1].set_title(label, fontsize=img_size*2)
 
