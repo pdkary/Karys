@@ -18,11 +18,11 @@ class CategoricalLabel():
     def get_label_ids_by_names(self, names):
         return [self.get_label_id_by_name(n) for n in names]
 
-    def get_label_vector_by_id(self,id):
-        return self.label_vectors_by_name[id]
+    def get_label_vector_by_name(self,name):
+        return self.label_vectors_by_name[name]
     
     def get_label_vectors_by_names(self,names):
-        return [self.get_label_vector_by_id(n) for n in names]
+        return np.array([self.get_label_vector_by_name(n) for n in names])
     
     def get_label_names_by_ids(self, ids):
         return self.labels_by_id['categories'].iloc[ids]
