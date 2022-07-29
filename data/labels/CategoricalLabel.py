@@ -22,7 +22,7 @@ class CategoricalLabel():
         return self.label_vectors_by_name[name]
     
     def get_label_vectors_by_names(self,names):
-        return np.array([self.get_label_vector_by_name(n) for n in names])
+        return np.array([self.get_label_vector_by_name(n) for n in names])[:,:,0]
     
     def get_label_names_by_ids(self, ids):
         return self.labels_by_id['categories'].iloc[ids]

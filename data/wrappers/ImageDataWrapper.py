@@ -173,9 +173,9 @@ class ImageDataWrapper(DataWrapper):
         fig.savefig(filename)
         plt.close()
     
-    def save_encoded_images(self, filename, images_encodings_labels, img_size = 32):
-        image_shape = images_encodings_labels[0][0].shape
-        encoding_dim = images_encodings_labels[0][1].shape[-1]
+    def save_encoded_images(self, filename, images_labels_encodings, img_size = 32):
+        image_shape = images_labels_encodings[0][0].shape
+        encoding_dim = images_labels_encodings[0][2].shape[-1]
         channels = image_shape[-1]
 
         R, C, M = self.data_config.preview_rows, self.data_config.preview_cols, self.data_config.preview_margin
@@ -189,7 +189,7 @@ class ImageDataWrapper(DataWrapper):
 
         for row in range(R):
             for col in range(C):
-                img, encoding, label = images_encodings_labels[row*R+col]
+                img, label, encoding  = images_labels_encodings[row*R+col]
                 img = self.data_config.save_scale_func(img)
 
                 if channels == 1:

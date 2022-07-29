@@ -37,7 +37,7 @@ class EncoderTrainer(object):
 
     def __run_batch__(self, batch_names, batch_data, training=True):
         batch_labels = [ self.labelled_input.image_labels[n] for n in batch_names]
-        labels = self.encoded_classifier.label_generator.get_label_vectors_by_names(batch_labels).T
+        labels = self.encoded_classifier.label_generator.get_label_vectors_by_names(batch_labels)
 
         _, encoded_batch = self.encoder.encode(batch_data, training=training)
         _, e_probs, e_preds = self.encoded_classifier.classify(encoded_batch, training)
