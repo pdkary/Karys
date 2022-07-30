@@ -21,13 +21,16 @@ class EncodedClassificationModel():
         encoder = EncoderModel(input_shape, encoder_dimensions, encoder_layers, encoder_optimizer, encoder_loss)
         classifier = ClassificationModel([encoder_dimensions], category_labels, classifier_layers, classifier_optimizer, classifier_loss)
         return cls(encoder, classifier)
-        
+
     def __init__(self, encoder: EncoderModel, classifier: ClassificationModel):
         self.encoder = encoder
         self.classifier = classifier
+    
+    def encode(self, input_batch, training=False):
+        return self.encoder.encode(input_batch, training=training)
 
     def classify(self, input_batch, training=False):
-        _, encoded_batch = self.encoder.encode(input_batch, training=training)
+        _, encoded_batch = self.encode(input_batch, training=training)
         return self.classifier.classify(encoded_batch, training=training)
     
     def build(self, name: str = None, silent=False):

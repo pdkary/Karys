@@ -1,3 +1,6 @@
+from abc import ABC, abstractclassmethod
+import glob
+import os
 from dataclasses import dataclass
 from typing import List, Tuple
 
@@ -8,7 +11,7 @@ from tensorflow.keras.optimizers import Optimizer
 
 
 @dataclass
-class ModelWrapper():
+class ModelWrapper(ABC):
     input_shape: Tuple
     output_shape: Tuple
     layers: List[Layer]
@@ -16,12 +19,11 @@ class ModelWrapper():
     loss: Loss
 
     model: Model = None
-    flatten_input: bool = True
+    flatten_input: bool = False
 
-    @classmethod
-    def load_from_filepath(cls, filepath, optimizer: Optimizer, loss: Loss):
-        model: Model = load_model(filepath)
-        return cls(model.input_shape, model.output_shape, model.layers, optimizer, loss, model = model)
+    @abstractclassmethod
+    def load_from_filepath(cls, filepath, **kwargs):
+        pass
 
     @property
     def layer_sizes(self):

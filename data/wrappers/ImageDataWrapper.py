@@ -50,7 +50,7 @@ class ImageDataWrapper(DataWrapper):
                  image_set: Dict[str, np.ndarray], 
                  image_labels: Dict[str,str],
                  data_config: ImageDataConfig, 
-                 validation_percentage: float = 0.05): 
+                 validation_percentage: float = 0.05):
         super(ImageDataWrapper, self).__init__(data_config, validation_percentage)
         self.image_set = image_set
         self.image_labels = {x:image_labels[x] for x in image_set.keys()}
@@ -69,14 +69,17 @@ class ImageDataWrapper(DataWrapper):
         return ImageDataWrapper.load_from_file(image_filepath, labels, data_config, validation_percentage)
 
     @classmethod
-    def load_from_labelled_directories(cls, base_dir, data_config: ImageDataConfig, validation_percentage: float = 0.05):
+    def load_from_labelled_directories(cls, base_dir, data_config: ImageDataConfig, validation_percentage: float = 0.05, use_dirs=None):
         directory_glob = glob.glob(base_dir + '/*/')
         label_dict = {}
         for folder in directory_glob:
             label = re.split("[\\\/]+",folder)[-2]
-            for filepath in glob.glob(folder+"/*"):
-                filename = os.path.basename(filepath)
-                label_dict[filename] = label
+            if use_dirs is not None and label in use_dirs:
+                for filepath in glob.glob(folder+"/*"):
+                    filename = os.path.basename(filepath)
+                    label_dict[filename] = label
+            else:
+                print("skipping: ", label)
         return ImageDataWrapper.load_from_file(base_dir, label_dict, data_config, validation_percentage)
 
     @classmethod
@@ -85,12 +88,13 @@ class ImageDataWrapper(DataWrapper):
         img_rows, img_cols, channels = data_config.image_shape
         imgs = {}
         for img_name in images.keys():
-            img = images[img_name]
-            img = convert_image(img,channels)
-            img = img.resize(size=(img_rows, img_cols),resample=Image.ANTIALIAS)
-            img = np.array(img).astype('float32')
-            img = data_config.load_scale_func(img)
-            imgs[img_name] = img
+            if img_name in labels.keys():
+                img = images[img_name]
+                img = convert_image(img,channels)
+                img = img.resize(size=(img_rows, img_cols),resample=Image.ANTIALIAS)
+                img = np.array(img).astype('float32')
+                img = data_config.load_scale_func(img)
+                imgs[img_name] = img
         return cls(imgs, labels, data_config, validation_percentage)
 
     
