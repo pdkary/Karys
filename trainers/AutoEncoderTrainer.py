@@ -91,7 +91,7 @@ class AutoEncoderTrainer(object):
         input_dataset = batched_input[:num_batches]
 
         for batch_names, batch_data in input_dataset:
-            e_loss, c_loss, g_loss = self.__run_batch__(batch_names, batch_data, training=True)
+            e_loss, c_loss, g_loss = self.__run_batch__(batch_names, batch_data, training=False)
             e_loss_bucket.append(e_loss)
             c_loss_bucket.append(c_loss)
             g_loss_bucket.append(g_loss)
