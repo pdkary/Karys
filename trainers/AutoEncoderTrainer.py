@@ -30,6 +30,7 @@ class AutoEncoderTrainer(object):
         self.labelled_train_data = self.labelled_input.get_train_dataset()
         self.labelled_test_data = self.labelled_input.get_validation_dataset()
 
+        self.most_recent_generated = None
         self.most_recent_real_encoding = None
         self.most_recent_gen_encoding = None
         self.most_recent_real_classification = None
@@ -44,14 +45,15 @@ class AutoEncoderTrainer(object):
         generated_batch_data = self.generator.generate(encoded_batch, training)
         encoded_g_batch, g_probs, g_preds = self.encoded_classifier.classify(generated_batch_data, training)
 
+        self.most_recent_generated = generated_batch_data
         self.most_recent_real_encoding = list(zip(batch_data, batch_labels, encoded_batch))
         self.most_recent_gen_encoding = list(zip(generated_batch_data, batch_labels, encoded_g_batch))
         self.most_recent_real_classification = list(zip(batch_data, batch_labels, e_preds))
         self.most_recent_gen_classification = list(zip(generated_batch_data, batch_labels, g_preds))
 
-        generator_loss = self.generator.loss(labels, g_probs)
+        generator_loss = self.generator.loss(encoded_batch, encoded_g_batch)
         encoder_loss = self.encoded_classifier.encoder.loss(labels, e_probs)
-        classifier_loss = self.encoded_classifier.classifier.loss(labels, e_probs)
+        classifier_loss = self.encoded_classifier.classifier.loss(labels, e_probs) + self.encoded_classifier.encoder.loss(np.zeros_like(labels), g_probs)
         return encoder_loss, classifier_loss, generator_loss
 
     def train(self, batch_size, num_batches):
