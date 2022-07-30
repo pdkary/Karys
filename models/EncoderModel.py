@@ -16,7 +16,7 @@ class EncoderModel(ModelWrapper):
         super(EncoderModel, self).__init__(input_shape, [vector_size], layers, optimizer, loss, flatten_input=False)
     
     def encode(self, input_batch, training=False):
-        encoded_output = self.model(input_batch, training=training)
-        return input_batch, encoded_output
+        encoded_batch = self.model(input_batch, training=training)
+        return input_batch, encoded_batch
         
         
