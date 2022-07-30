@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import glob
 from typing import List, Tuple
 
 from tensorflow.keras.layers import Flatten, Input, Layer, Reshape
@@ -21,8 +20,6 @@ class ModelWrapper():
 
     @classmethod
     def load_from_filepath(cls, filepath, optimizer: Optimizer, loss: Loss):
-        print(filepath)
-        print(glob.glob(filepath + "/*"))
         model: Model = load_model(filepath)
         return cls(model.input_shape, model.output_shape, model.layers, optimizer, loss, model = model)
 
@@ -32,6 +29,8 @@ class ModelWrapper():
 
     def build(self, name: str = None, silent=False):
         if self.model is not None:
+            if not silent:
+                self.model.summary()
             return self.model
         
         self.input_layer = Input(shape=self.input_shape)
