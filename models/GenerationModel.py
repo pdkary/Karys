@@ -19,7 +19,7 @@ class GenerationModel(ModelWrapper):
     
     @classmethod
     def load_from_filepath(cls, filepath, optimizer: Optimizer, loss: Loss):
-        filepath = os.path.normpath(filepath)
+        filepath = os.path.abspath(filepath)
         model: Model = load_model(filepath)
         return cls(model.input_shape, model.output_shape, model.layers, optimizer, loss, model = model)
 
