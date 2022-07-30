@@ -1,8 +1,10 @@
 #descriminator test becasue lots of images
 
-examples/discriminator/test_input/**/*.png
-examples/discriminator/test_input/**/*.jpg
-examples/discriminator/test_model_output/*
+examples/*/test_input/**/*.png
+examples/*/test_input/**/*.jpg
+examples/*/test_model_output/*
+
+
 
 
 # Byte-compiled / optimized / DLL files
