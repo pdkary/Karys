@@ -74,7 +74,7 @@ class ImageDataWrapper(DataWrapper):
         label_dict = {}
         for folder in directory_glob:
             label = re.split("[\\\/]+",folder)[-2]
-            if use_dirs is not None and label in use_dirs:
+            if use_dirs is None or label in use_dirs:
                 for filepath in glob.glob(folder+"/*"):
                     filename = os.path.basename(filepath)
                     label_dict[filename] = label
