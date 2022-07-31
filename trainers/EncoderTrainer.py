@@ -48,9 +48,9 @@ class EncoderTrainer(object):
         i_classifier_loss = self.image_classifier.loss(labels, c_probs)
 
         encoder_real_std = np.std(encoded_batch, axis=0)
-        encoder_real_var_loss = self.encoded_classifier.encoder.loss(0.2*np.ones_like(encoder_real_std), encoder_real_std)
+        encoder_real_std_loss = self.encoded_classifier.encoder.loss(0.3*np.ones_like(encoder_real_std), encoder_real_std)
 
-        encoder_loss = encoder_real_var_loss + e_classifier_loss
+        encoder_loss = 0.25*encoder_real_std_loss + e_classifier_loss
         return encoder_loss, e_classifier_loss, i_classifier_loss
 
     def train(self, batch_size, num_batches):
