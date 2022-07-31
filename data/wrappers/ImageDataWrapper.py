@@ -44,7 +44,7 @@ def load_images(dirpath: str, data_ref: ImageDataConfig):
         current_state = 100*n/num_images
         current_progress = current_state // ten_percent
         if current_progress > prev_progress:
-            print(f"Loaded {round(current_state,2)} %")
+            print(f"Loaded {round(current_state,2)} % ({n} images)")
             prev_progress = current_progress
         
         if current_state >= data_ref.load_n_percent:
