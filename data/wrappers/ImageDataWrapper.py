@@ -37,8 +37,17 @@ def load_images(dirpath: str, data_ref: ImageDataConfig):
     print("LOADING %d IMAGES" % len(images))
     x = {}
     num_images = len(images)
+
+    ten_percent = data_ref.load_n_percent/10
+    prev_progress = 0
     for n, i in enumerate(images):
-        if 100*n/num_images >= data_ref.load_n_percent:
+        current_state = 100*n/num_images
+        current_progress = current_state // ten_percent
+        if current_progress > prev_progress:
+            print(f"Loaded {round(current_state,2)} %")
+            prev_progress = current_progress
+        
+        if current_state >= data_ref.load_n_percent:
             break
         image_name = re.split("[\\\/]+",i)[-1]
         x[image_name] = Image.open(i)
