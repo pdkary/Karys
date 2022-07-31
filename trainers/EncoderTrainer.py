@@ -47,7 +47,7 @@ class EncoderTrainer(object):
         e_classifier_loss = self.encoded_classifier.classifier.loss(labels, e_probs)
         i_classifier_loss = self.image_classifier.loss(labels, c_probs)
 
-        encoder_loss = self.encoded_classifier.encoder.loss(c_probs, e_probs)
+        encoder_loss = self.encoded_classifier.encoder.loss(c_probs, e_probs) + self.encoded_classifier.encoder.loss(labels, e_probs)
         return encoder_loss, e_classifier_loss, i_classifier_loss
 
     def train(self, batch_size, num_batches):
