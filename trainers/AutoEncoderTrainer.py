@@ -52,7 +52,7 @@ class AutoEncoderTrainer(object):
         self.most_recent_gen_classification = list(zip(generated_batch_data, batch_labels, g_preds))
 
         void_label = self.encoded_classifier.classifier.label_generator.get_label_vector_by_name("Invalid")
-        void_labels = np.repeat(void_label, batch_data.shape[0],axis=0)
+        void_labels = np.repeat(void_label, batch_data.shape[0],axis=-1).T
 
         generator_encoding_loss = self.generator.loss(encoded_batch, encoded_g_batch)
         generator_classification_loss = self.generator.loss(1-void_labels, g_probs)
