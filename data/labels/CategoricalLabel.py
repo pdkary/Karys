@@ -5,6 +5,7 @@ from sklearn.preprocessing import OneHotEncoder
 
 class CategoricalLabel():
     def __init__(self, labels: List[str]):
+        labels = labels + ["Invalid"] if "Invalid" not in labels else labels
         self.label_dim = len(labels)
         self.labels_by_id = pd.DataFrame(labels, columns=["categories"], index=range(self.label_dim))
         one_hot_encoder = OneHotEncoder(sparse=False)

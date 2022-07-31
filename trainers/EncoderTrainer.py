@@ -44,9 +44,13 @@ class EncoderTrainer(object):
         self.most_recent_endcoded_classification = list(zip(batch_data, batch_labels, e_preds))
         self.most_recent_classification = list(zip(batch_data, batch_labels, c_preds))
 
-        encoder_loss = self.encoded_classifier.encoder.loss(c_probs, e_probs) + self.encoded_classifier.encoder.loss(labels, e_probs)
         e_classifier_loss = self.encoded_classifier.classifier.loss(labels, e_probs)
         i_classifier_loss = self.image_classifier.loss(labels, c_probs)
+
+        encoder_real_std = np.std(encoded_batch, axis=0)
+        encoder_real_var_loss = self.encoded_classifier.encoder.loss(np.ones_like(encoder_real_std), encoder_real_std)
+
+        encoder_loss = encoder_real_var_loss + e_classifier_loss
         return encoder_loss, e_classifier_loss, i_classifier_loss
 
     def train(self, batch_size, num_batches):

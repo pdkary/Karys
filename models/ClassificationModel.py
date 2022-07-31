@@ -17,7 +17,7 @@ class ClassificationModel(ModelWrapper):
                  optimizer: Optimizer, 
                  loss: Loss,
                  model: Model = None):
-        super(ClassificationModel, self).__init__(input_shape, [len(category_labels)], layers, optimizer, loss, model=model)
+        super(ClassificationModel, self).__init__(input_shape, [len(category_labels)+1], layers, optimizer, loss, model=model)
         self.label_generator: CategoricalLabel = CategoricalLabel(category_labels)
     
     @classmethod

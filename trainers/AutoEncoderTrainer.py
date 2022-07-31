@@ -51,10 +51,24 @@ class AutoEncoderTrainer(object):
         self.most_recent_real_classification = list(zip(batch_data, batch_labels, e_preds))
         self.most_recent_gen_classification = list(zip(generated_batch_data, batch_labels, g_preds))
 
-        void_labels = np.ones_like(labels)/ labels[0].shape[-1]
-        generator_loss = self.generator.loss(encoded_batch, encoded_g_batch)
-        encoder_loss = self.encoded_classifier.encoder.loss(labels, e_probs) + self.encoded_classifier.classifier.loss(void_labels, g_probs)
-        classifier_loss = self.encoded_classifier.classifier.loss(labels, e_probs) + self.encoded_classifier.classifier.loss(void_labels, g_probs)
+        void_label = self.encoded_classifier.classifier.label_generator.get_label_vector_by_name("Invalid")
+        void_labels = np.repeat(void_label, batch_data.shape[0],axis=0)
+
+        generator_encoding_loss = self.generator.loss(encoded_batch, encoded_g_batch)
+        generator_classification_loss = self.generator.loss(1-void_labels, g_probs)
+
+        classifier_real_loss = self.encoded_classifier.classifier.loss(labels, e_probs)
+        classifier_gen_loss = self.encoded_classifier.classifier.loss(void_labels, g_probs)
+
+        encoder_real_std = np.std(encoded_batch, axis=0)
+        encoder_gen_std = np.std(encoded_g_batch, axis=0)
+
+        encoder_real_var_loss = self.encoded_classifier.encoder.loss(np.ones_like(encoder_real_std), encoder_real_std)
+        encoder_gen_var_loss = self.encoded_classifier.encoder.loss(np.ones_like(encoder_gen_std), encoder_gen_std)
+
+        generator_loss = generator_encoding_loss + generator_classification_loss
+        classifier_loss = classifier_real_loss + classifier_gen_loss
+        encoder_loss = encoder_real_var_loss + encoder_gen_var_loss + classifier_loss
         return encoder_loss, classifier_loss, generator_loss
 
     def train(self, batch_size, num_batches):
