@@ -33,8 +33,8 @@ def load_images(dirpath: str, data_ref: ImageDataConfig):
     images = glob.glob(glob_glob)
     np.random.shuffle(images)
 
-    print("LOADING FROM %s" % (glob_glob))
-    print("LOADING %d IMAGES" % len(images))
+    print(f"LOADING FROM {glob_glob}")
+    print(f"LOADING {data_ref.load_n_percent} % of {len(images)} IMAGES: ({data_ref.load_n_percent*len(images)/100})")
     x = {}
     num_images = len(images)
 

@@ -30,6 +30,6 @@ class ClassificationModel(ModelWrapper):
         classification_pd = self.model(input_batch, training=training)
         argmax_class = np.argmax(classification_pd, axis=1)
         labels = self.label_generator.get_label_names_by_ids(argmax_class)
-        return input_batch, classification_pd, labels
+        return classification_pd, labels
         
         

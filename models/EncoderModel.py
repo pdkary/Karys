@@ -26,6 +26,8 @@ class EncoderModel(ModelWrapper):
     
     def encode(self, input_batch, training=False):
         encoded_batch = self.model(input_batch, training=training)
-        return input_batch, encoded_batch
-        
+        return encoded_batch
+
+class DecoderModel(EncoderModel):
+    pass
         
