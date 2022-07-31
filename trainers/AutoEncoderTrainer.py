@@ -60,15 +60,9 @@ class AutoEncoderTrainer(object):
         classifier_real_loss = self.encoded_classifier.classifier.loss(labels, e_probs)
         classifier_gen_loss = self.encoded_classifier.classifier.loss(void_labels, g_probs)
 
-        encoder_real_std = np.std(encoded_batch, axis=0)
-        encoder_gen_std = np.std(encoded_g_batch, axis=0)
-
-        encoder_real_var_loss = self.encoded_classifier.encoder.loss(np.ones_like(encoder_real_std), encoder_real_std)
-        encoder_gen_var_loss = self.encoded_classifier.encoder.loss(np.ones_like(encoder_gen_std), encoder_gen_std)
-
         generator_loss = generator_encoding_loss + generator_classification_loss
         classifier_loss = classifier_real_loss + classifier_gen_loss
-        encoder_loss = encoder_real_var_loss + encoder_gen_var_loss + classifier_loss
+        encoder_loss = self.encoded_classifier.encoder.loss(void_labels, e_probs) + self.encoded_classifier.encoder.loss(labels, e_probs)
         return encoder_loss, classifier_loss, generator_loss
 
     def train(self, batch_size, num_batches):
