@@ -68,7 +68,7 @@ class AutoEncoderTrainer(object):
 
         V, V_probs, V_lbls, gen_batch, GV, GV_probs, GV_lbls = self.auto_encoder.run_all(batch_data, training)
 
-        decoder_loss = self.decoder_loss(labels, V_probs, GV_probs V, GV)
+        decoder_loss = self.decoder_loss(labels, V_probs, GV_probs, V, GV)
         encoder_loss = self.encoder_loss(labels, V_probs, GV_probs, V, GV)
         classifier_loss = self.classifier_loss(labels, V_probs, GV_probs)
 
