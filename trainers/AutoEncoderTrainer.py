@@ -22,11 +22,13 @@ class AutoEncoderTrainer(object):
                  auto_encoder: AutoEncoderModel,
                  labelled_input: ImageDataWrapper,
                  encoding_loss_coefficient: float = 0.1,
-                 generated_flag_coefficient: float = 0.15):
+                 generated_flag_coefficient: float = 0.15,
+                 re_encoding_diff_coefficient: float = 1.0):
         self.auto_encoder = auto_encoder
         self.labelled_input = labelled_input
         self.encoding_loss_coefficient = encoding_loss_coefficient
         self.generated_flag_coefficient = generated_flag_coefficient
+        self.re_encoding_diff_coefficient = re_encoding_diff_coefficient
 
         self.labelled_train_data = self.labelled_input.get_train_dataset()
         self.labelled_test_data = self.labelled_input.get_validation_dataset()
@@ -37,15 +39,16 @@ class AutoEncoderTrainer(object):
         self.most_recent_real_classification = None
         self.most_recent_gen_classification = None
     
-    def decoder_loss(self, encoded_vectors, reencoded_vectors, encoded_label_probs, reencoded_label_probs):
+    def decoder_loss(self, label_vectors, encoded_label_probs, reencoded_label_probs, encoded_vectors, reencoded_vectors):
         encoding_loss = self.encoding_loss_coefficient*self.auto_encoder.decoder.loss(encoded_vectors, reencoded_vectors)
-        reencoding_loss = self.auto_encoder.decoder.loss(encoded_label_probs, reencoded_label_probs)
-        return encoding_loss + reencoding_loss
+        label_loss = self.auto_encoder(label_vectors, reencoded_label_probs)
+        reencoding_loss = self.re_encoding_diff_coefficient*self.auto_encoder.decoder.loss(encoded_label_probs, reencoded_label_probs)
+        return encoding_loss + label_loss + reencoding_loss
     
     def encoder_loss(self,label_vectors, encoded_label_probs, reencoded_label_probs, encoded_vectors, reencoded_vectors):
         lbl_loss = self.auto_encoder.encoder.loss(label_vectors, encoded_label_probs)
         reenc_lbl_loss = self.auto_encoder.encoder.loss(label_vectors, reencoded_label_probs)
-        reenc_diff_lbl_loss = self.auto_encoder.encoder.loss(encoded_label_probs, reencoded_label_probs)
+        reenc_diff_lbl_loss = self.re_encoding_diff_coefficient*self.auto_encoder.encoder.loss(encoded_label_probs, reencoded_label_probs)
         vector_diff_loss = self.encoding_loss_coefficient*self.auto_encoder.encoder.loss(encoded_vectors, reencoded_vectors)
         return lbl_loss + reenc_lbl_loss + reenc_diff_lbl_loss + vector_diff_loss
     
@@ -65,7 +68,7 @@ class AutoEncoderTrainer(object):
 
         V, V_probs, V_lbls, gen_batch, GV, GV_probs, GV_lbls = self.auto_encoder.run_all(batch_data, training)
 
-        decoder_loss = self.decoder_loss(V, GV, V_probs, GV_probs)
+        decoder_loss = self.decoder_loss(labels, V_probs, GV_probs V, GV)
         encoder_loss = self.encoder_loss(labels, V_probs, GV_probs, V, GV)
         classifier_loss = self.classifier_loss(labels, V_probs, GV_probs)
 
