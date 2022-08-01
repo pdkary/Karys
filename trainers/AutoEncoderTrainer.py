@@ -20,9 +20,13 @@ def batch_dict(adict, batch_size):
 class AutoEncoderTrainer(object):
     def __init__(self,
                  auto_encoder: AutoEncoderModel,
-                 labelled_input: ImageDataWrapper):
+                 labelled_input: ImageDataWrapper,
+                 encoding_loss_coefficient: float = 0.1,
+                 generated_flag_coefficient: float = 0.15):
         self.auto_encoder = auto_encoder
         self.labelled_input = labelled_input
+        self.encoding_loss_coefficient = encoding_loss_coefficient
+        self.generated_flag_coefficient = generated_flag_coefficient
 
         self.labelled_train_data = self.labelled_input.get_train_dataset()
         self.labelled_test_data = self.labelled_input.get_validation_dataset()
@@ -34,7 +38,7 @@ class AutoEncoderTrainer(object):
         self.most_recent_gen_classification = None
     
     def decoder_loss(self, encoded_vectors, reencoded_vectors, encoded_label_probs, reencoded_label_probs):
-        encoding_loss = self.auto_encoder.decoder.loss(encoded_vectors, reencoded_vectors)
+        encoding_loss = self.encoding_loss_coefficient*self.auto_encoder.decoder.loss(encoded_vectors, reencoded_vectors)
         reencoding_loss = self.auto_encoder.decoder.loss(encoded_label_probs, reencoded_label_probs)
         return encoding_loss + reencoding_loss
     
@@ -42,7 +46,7 @@ class AutoEncoderTrainer(object):
         lbl_loss = self.auto_encoder.encoder.loss(label_vectors, encoded_label_probs)
         reenc_lbl_loss = self.auto_encoder.encoder.loss(label_vectors, reencoded_label_probs)
         reenc_diff_lbl_loss = self.auto_encoder.encoder.loss(encoded_label_probs, reencoded_label_probs)
-        vector_diff_loss = self.auto_encoder.encoder.loss(encoded_vectors, reencoded_vectors)
+        vector_diff_loss = self.encoding_loss_coefficient*self.auto_encoder.encoder.loss(encoded_vectors, reencoded_vectors)
         return lbl_loss + reenc_lbl_loss + reenc_diff_lbl_loss + vector_diff_loss
     
     def classifier_loss(self, label_vectors, encoded_label_probs, reencoded_label_probs):
@@ -50,7 +54,7 @@ class AutoEncoderTrainer(object):
         re_encoded_flag_vector = self.auto_encoder.classifier.label_generator.get_label_vector_by_category_name("generated")
         batch_reenc_flag_vectors = np.concatenate([re_encoded_flag_vector]*batch_size,axis=-1).T
 
-        flagged_labels = label_vectors + 0.33*batch_reenc_flag_vectors
+        flagged_labels = label_vectors + self.generated_flag_coefficient*batch_reenc_flag_vectors
         real_classification_loss = self.auto_encoder.classifier.loss(label_vectors, encoded_label_probs)
         generator_indication_loss = self.auto_encoder.classifier.loss(flagged_labels, reencoded_label_probs)
         return real_classification_loss + generator_indication_loss
