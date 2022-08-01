@@ -9,7 +9,6 @@ class AutoEncoderModel():
         print("encoder.output_shape: ",encoder.output_shape)
         print("decoder.input_shape: ", decoder.input_shape)
         print("classifier.input_shape: ",classifier.input_shape)
-        assert encoder.output_shape == [decoder.input_shape] and encoder.output_shape == classifier.input_shape
         self.encoder: EncoderModel = encoder
         self.decoder: GenerationModel = decoder
         self.classifier: ClassificationModel = classifier
@@ -31,7 +30,7 @@ class AutoEncoderModel():
         reencoded_probs, reencoded_labels = self.classify(reencoded_vectors, training=training)
         return encoded_vectors, encoded_probs, encoded_labels, decoded_batch, reencoded_vectors, reencoded_probs, reencoded_labels
 
-    def build(self, name: str = None, silent=False):
+    def build(self, name: str = 'autoencoder', silent=False):
         e_name = None if name is None else name + "_encoder"
         d_name = None if name is None else name + "_generator"
         c_name = None if name is None else name + "_classifier"
