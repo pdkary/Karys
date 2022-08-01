@@ -38,15 +38,21 @@ class AutoEncoderTrainer(object):
         reencoding_loss = self.auto_encoder.decoder.loss(encoded_label_probs, reencoded_label_probs)
         return encoding_loss + reencoding_loss
     
-    def encoder_loss(self, label_vectors, encoded_label_probs, reencoded_label_probs):
-        encoding_loss = self.auto_encoder.encoder.loss(label_vectors, encoded_label_probs)
-        reencoding_loss = self.auto_encoder.encoder.loss(label_vectors, reencoded_label_probs)
-        return encoding_loss + reencoding_loss
+    def encoder_loss(self,label_vectors, encoded_label_probs, reencoded_label_probs, encoded_vectors, reencoded_vectors):
+        lbl_loss = self.auto_encoder.encoder.loss(label_vectors, encoded_label_probs)
+        reenc_lbl_loss = self.auto_encoder.encoder.loss(label_vectors, reencoded_label_probs)
+        reenc_diff_lbl_loss = self.auto_encoder.encoder.loss(encoded_label_probs, reencoded_label_probs)
+        vector_diff_loss = self.auto_encoder.encoder.loss(encoded_vectors, reencoded_vectors)
+        return lbl_loss + reenc_lbl_loss + reenc_diff_lbl_loss + vector_diff_loss
     
     def classifier_loss(self, label_vectors, encoded_label_probs, reencoded_label_probs):
-        encoding_loss = self.auto_encoder.classifier.loss(label_vectors, encoded_label_probs)
-        reencoding_loss = self.auto_encoder.classifier.loss(label_vectors, reencoded_label_probs)
-        return encoding_loss + reencoding_loss
+        batch_size = label_vectors.shape[0]
+        gen_indication_vector = self.auto_encoder.classifier.label_generator.get_label_vector_by_name("Invalid")
+        gen_indication_vector = np.concatenate([gen_indication_vector]*batch_size,axis=-1).T
+        real_classification_loss = self.auto_encoder.classifier.loss(label_vectors, encoded_label_probs)
+        generator_indication_loss = self.auto_encoder.classifier.loss(gen_indication_vector, reencoded_label_probs)
+        lbl_differential_loss = self.auto_encoder.classifier.loss(encoded_label_probs, reencoded_label_probs)
+        return real_classification_loss + generator_indication_loss + lbl_differential_loss
 
     def __run_batch__(self, batch_names, batch_data, training=True):
         batch_labels = [ self.labelled_input.image_labels[n] for n in batch_names]
@@ -55,7 +61,7 @@ class AutoEncoderTrainer(object):
         V, V_probs, V_lbls, gen_batch, GV, GV_probs, GV_lbls = self.auto_encoder.run_all(batch_data, training)
 
         decoder_loss = self.decoder_loss(V,V_probs,GV,GV_probs)
-        encoder_loss = self.encoder_loss(labels,V_probs,GV_probs)
+        encoder_loss = self.encoder_loss(labels, V_probs, GV_probs,V,GV)
         classifier_loss = self.classifier_loss(labels,V_probs,GV_probs)
 
         self.most_recent_generated = gen_batch
