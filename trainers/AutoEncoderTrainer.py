@@ -41,7 +41,7 @@ class AutoEncoderTrainer(object):
     
     def decoder_loss(self, label_vectors, encoded_label_probs, reencoded_label_probs, encoded_vectors, reencoded_vectors):
         encoding_loss = self.encoding_loss_coefficient*self.auto_encoder.decoder.loss(encoded_vectors, reencoded_vectors)
-        label_loss = self.auto_encoder(label_vectors, reencoded_label_probs)
+        label_loss = self.auto_encoder.decoder.loss(label_vectors, reencoded_label_probs)
         reencoding_loss = self.re_encoding_diff_coefficient*self.auto_encoder.decoder.loss(encoded_label_probs, reencoded_label_probs)
         return encoding_loss + label_loss + reencoding_loss
     
