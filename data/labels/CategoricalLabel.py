@@ -4,28 +4,37 @@ import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
 
 class CategoricalLabel():
-    def __init__(self, labels: List[str]):
-        labels = labels + ["Invalid"] if "Invalid" not in labels else labels
-        self.label_dim = len(labels)
-        self.labels_by_id = pd.DataFrame(labels, columns=["categories"], index=range(self.label_dim))
+    def __init__(self, categories: List[str], flags: List[str] = None):
+        flags = [] if flags is None else flags
+        self.categories = categories
+        self.flags = flags
+        self.category_dim = len(categories)
+        self.flag_dim = len(flags)
+        self.label_dim = len(categories) + len(flags)
+
+        self.labels_by_id = pd.DataFrame(categories + flags, columns=["categories"], index=range(self.label_dim))
         one_hot_encoder = OneHotEncoder(sparse=False)
         one_hot_encoder.fit(self.labels_by_id)
         label_df_encoded = one_hot_encoder.transform(self.labels_by_id)
         self.label_vectors_by_name = pd.DataFrame(data=label_df_encoded, columns=one_hot_encoder.categories_)
     
-    def get_label_id_by_name(self, name):
+    def get_label_id_by_category_name(self, name):
         return self.labels_by_id.loc[self.labels_by_id["categories"] == name].index[0]
 
-    def get_label_ids_by_names(self, names):
-        return [self.get_label_id_by_name(n) for n in names]
+    def get_label_ids_by_category_names(self, names):
+        return [self.get_label_id_by_category_name(n) for n in names]
 
-    def get_label_vector_by_name(self,name):
+    def get_label_vector_by_category_name(self,name):
         return self.label_vectors_by_name[name]
     
-    def get_label_vectors_by_names(self,names):
-        return np.array([self.get_label_vector_by_name(n) for n in names])[:,:,0]
+    def get_label_vectors_by_category_names(self,names, flags=None):
+        category_vectors = np.array([self.get_label_vector_by_category_name(n) for n in names])[:,:,0]
+        if flags is not None:
+            flag_vectors = np.array([self.get_label_vector_by_category_name(f) for f in flags])
+            return category_vectors + flag_vectors
+        return category_vectors
     
-    def get_label_names_by_ids(self, ids):
+    def get_category_names_by_ids(self, ids):
         return self.labels_by_id['categories'].iloc[ids]
     
     def ones(self):
@@ -45,7 +54,7 @@ class BatchedCategoricalLabel(CategoricalLabel):
         return np.zeros(shape=[batch_size,self.label_dim])
 
     def get_batch_label_vectors_by_names(self, names, batch_size):
-        labels = self.get_label_vectors_by_names(names)
+        labels = self.get_label_vectors_by_category_names(names)
         return np.repeat(labels[:,:,np.newaxis], batch_size, axis=2)
     
 
