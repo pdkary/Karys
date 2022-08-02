@@ -20,15 +20,9 @@ def batch_dict(adict, batch_size):
 class AutoEncoderTrainer(object):
     def __init__(self,
                  auto_encoder: AutoEncoderModel,
-                 labelled_input: ImageDataWrapper,
-                 encoding_loss_coefficient: float = 0.1,
-                 generated_flag_coefficient: float = 0.15,
-                 re_encoding_diff_coefficient: float = 1.0):
+                 labelled_input: ImageDataWrapper):
         self.auto_encoder = auto_encoder
         self.labelled_input = labelled_input
-        self.encoding_loss_coefficient = encoding_loss_coefficient
-        self.generated_flag_coefficient = generated_flag_coefficient
-        self.re_encoding_diff_coefficient = re_encoding_diff_coefficient
 
         self.labelled_train_data = self.labelled_input.get_train_dataset()
         self.labelled_test_data = self.labelled_input.get_validation_dataset()
@@ -55,7 +49,7 @@ class AutoEncoderTrainer(object):
 
         flagged_labels = label_vectors + batch_reenc_flag_vectors
         real_classification_loss = self.auto_encoder.classifier.loss(label_vectors, encoded_label_probs)
-        generator_indication_loss = self.generated_flag_coefficient*self.auto_encoder.classifier.loss(flagged_labels, reencoded_label_probs)
+        generator_indication_loss = self.auto_encoder.classifier.loss(flagged_labels, reencoded_label_probs)
         return real_classification_loss + generator_indication_loss
 
     def __run_batch__(self, batch_names, batch_data, training=True):
