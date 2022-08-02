@@ -38,12 +38,15 @@ class AutoEncoderTrainer(object):
         self.most_recent_gen_encoding = None
         self.most_recent_real_classification = None
         self.most_recent_gen_classification = None
-    
-    def decoder_loss(self, label_vectors, encoded_label_probs, reencoded_label_probs, encoded_vectors, reencoded_vectors):
-        encoding_loss = self.encoding_loss_coefficient*self.auto_encoder.decoder.loss(encoded_vectors, reencoded_vectors)
-        label_loss = self.auto_encoder.decoder.loss(label_vectors, reencoded_label_probs)
-        reencoding_loss = self.re_encoding_diff_coefficient*self.auto_encoder.decoder.loss(encoded_label_probs, reencoded_label_probs)
-        return encoding_loss + label_loss + reencoding_loss
+    #experimental direct loss
+    def decoder_loss(self, input_images, decoded_images):
+        return self.auto_encoder.decoder.loss(input_images, decoded_images)
+        
+    # def decoder_loss(self, label_vectors, encoded_label_probs, reencoded_label_probs, encoded_vectors, reencoded_vectors):
+        # encoding_loss = self.encoding_loss_coefficient*self.auto_encoder.decoder.loss(encoded_vectors, reencoded_vectors)
+        # label_loss = self.auto_encoder.decoder.loss(label_vectors, reencoded_label_probs)
+        # reencoding_loss = self.re_encoding_diff_coefficient*self.auto_encoder.decoder.loss(encoded_label_probs, reencoded_label_probs)
+        # return encoding_loss + label_loss + reencoding_loss
     
     def encoder_loss(self,label_vectors, encoded_label_probs, reencoded_label_probs, encoded_vectors, reencoded_vectors):
         lbl_loss = self.auto_encoder.encoder.loss(label_vectors, encoded_label_probs)
@@ -68,7 +71,7 @@ class AutoEncoderTrainer(object):
 
         V, V_probs, V_lbls, gen_batch, GV, GV_probs, GV_lbls = self.auto_encoder.run_all(batch_data, training)
 
-        decoder_loss = self.decoder_loss(labels, V_probs, GV_probs, V, GV)
+        decoder_loss = self.decoder_loss(batch_data,gen_batch)
         encoder_loss = self.encoder_loss(labels, V_probs, GV_probs, V, GV)
         classifier_loss = self.classifier_loss(labels, V_probs, GV_probs)
 
