@@ -22,10 +22,10 @@ class ClassificationModel(ModelWrapper):
         super(ClassificationModel, self).__init__(input_shape, [len(category_labels) + len(category_flags)], layers, optimizer, loss, model=model)
     
     @classmethod
-    def load_from_filepath(cls, filepath, category_labels: List[str], optimizer: Optimizer, loss: Loss):
+    def load_from_filepath(cls, filepath, category_labels: List[str], category_flags: List[str], optimizer: Optimizer, loss: Loss):
         filepath = os.path.normpath(filepath)
         model: Model = load_model(filepath)
-        return cls(model.input_shape, category_labels, model.layers, optimizer, loss, model)
+        return cls(model.input_shape, category_labels, category_flags, model.layers, optimizer, loss, model)
     
     def classify(self, input_batch, training=False):
         classification_pd = self.model(input_batch, training=training)
