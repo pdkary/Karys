@@ -65,8 +65,10 @@ class CategoricalEncoderGeneratorTrainer(object):
         generator_indication_loss += self.categorical_encoder_generator.classifier.loss(cd_labels, reencoded_image_label_probs)
         return real_classification_loss + label_vectorization_loss + generator_indication_loss
     
-    def label_vectorizer_loss(self, label_vectors, devectorized_labels):
-        return self.categorical_encoder_generator.label_vectorizer.loss(label_vectors, devectorized_labels)
+    def label_vectorizer_loss(self, label_vectors, devectorized_labels, reencoded_image_label_probs):
+        label_vectorizer_loss = self.categorical_encoder_generator.label_vectorizer.loss(label_vectors, devectorized_labels)
+        reencoding_label_loss = self.categorical_encoder_generator.label_vectorizer.loss(label_vectors, reencoded_image_label_probs)
+        return label_vectorizer_loss + reencoding_label_loss
 
     def __run_batch__(self, batch_names, batch_data, training=True):
         batch_labels = [ self.labelled_input.image_labels[n] for n in batch_names]
