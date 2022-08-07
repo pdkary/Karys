@@ -67,8 +67,10 @@ class AutoEncoderTrainer(object):
         classifier_loss = self.classifier_loss(labels, V_probs, GV_probs)
 
         self.most_recent_generated = gen_batch
+        
         self.most_recent_real_encoding = list(zip(batch_data, batch_labels, V))
         self.most_recent_gen_encoding = list(zip(gen_batch, batch_labels, GV))
+
         self.most_recent_real_classification = list(zip(batch_data, batch_labels, V_lbls))
         self.most_recent_gen_classification = list(zip(gen_batch, batch_labels, GV_lbls))
         return encoder_loss, decoder_loss, classifier_loss
