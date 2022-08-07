@@ -75,7 +75,7 @@ class CategoricalEncoderGeneratorTrainer(object):
         (V, LV, re_v, re_lv, 
          v_probs, lv_probs, re_v_probs, re_lv_probs, 
          v_lbls, lv_lbls, re_v_lbls, re_lv_lbls,
-         gen_batch, label_gen_batch) = self.categorical_encoder_generator.run_all(batch_data, batch_labels, training)
+         gen_batch, label_gen_batch) = self.categorical_encoder_generator.run_all(batch_data, labels, training)
 
         encoder_loss = self.encoder_loss(labels, v_probs)
         vectorizer_loss = self.label_vectorizer_loss(labels, lv_probs)
