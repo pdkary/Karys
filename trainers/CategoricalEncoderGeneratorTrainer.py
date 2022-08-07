@@ -86,14 +86,14 @@ class CategoricalEncoderGeneratorTrainer(object):
         self.most_recent_label_generated = label_gen_batch
 
         self.most_recent_real_encoding = list(zip(batch_data, batch_labels, V))
-        self.most_recent_label_encodings = list(zip(batch_data, batch_labels, LV))
-        self.most_recent_gen_encoding = list(zip(batch_data, batch_labels, re_v))
-        self.most_recent_label_gen_encoding = list(zip(batch_data, batch_labels, re_lv))
+        self.most_recent_label_encodings = list(zip(label_gen_batch, batch_labels, LV))
+        self.most_recent_gen_encoding = list(zip(gen_batch, batch_labels, re_v))
+        self.most_recent_label_gen_encoding = list(zip(label_gen_batch, batch_labels, re_lv))
         
         self.most_recent_real_classifications = list(zip(batch_data, batch_labels, v_lbls))
-        self.most_recent_label_classifications = list(zip(batch_data, batch_labels,lv_lbls))
-        self.most_recent_gen_classifications = list(zip(batch_data, batch_labels, re_v_lbls))
-        self.most_recent_label_gen_classifications = list(zip(batch_data, batch_labels, re_lv_lbls))
+        self.most_recent_label_classifications = list(zip(label_gen_batch, batch_labels, lv_lbls))
+        self.most_recent_gen_classifications = list(zip(gen_batch, batch_labels, re_v_lbls))
+        self.most_recent_label_gen_classifications = list(zip(label_gen_batch, batch_labels, re_lv_lbls))
 
         return encoder_loss, vectorizer_loss, decoder_loss, classifier_loss
 
