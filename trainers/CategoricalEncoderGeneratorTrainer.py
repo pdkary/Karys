@@ -42,17 +42,15 @@ class CategoricalEncoderGeneratorTrainer(object):
         self.most_recent_label_classifications = None
         self.most_recent_gen_classifications = None
         self.most_recent_label_gen_classifications = None
-
-        
     
-    def label_vectorizer_loss(self, encoded_image_labels, devectorized_labels):
-        return self.categorical_encoder_generator.label_vectorizer.loss(encoded_image_labels, devectorized_labels)
-
+    def label_vectorizer_loss(self, image_labels, encoded_image_labels, devectorized_labels, reencoded_label_image_probs):
+        vectorization_loss = self.categorical_encoder_generator.label_vectorizer.loss(encoded_image_labels, devectorized_labels)
+        reencoding_loss = self.categorical_encoder_generator.label_vectorizer(image_labels, reencoded_label_image_probs)
+        return vectorization_loss + reencoding_loss
+        
     ##generator should create images that are correctly identified and DO NOT receive the reencoding flag
-    def decoder_loss(self, label_vectors, reencoded_image_probs, reencoded_label_image_probs):
-        image_loss = self.categorical_encoder_generator.decoder.loss(label_vectors, reencoded_image_probs)
-        label_image_loss = self.categorical_encoder_generator.decoder.loss(label_vectors, reencoded_label_image_probs)
-        return image_loss + label_image_loss
+    def decoder_loss(self, label_vectors, reencoded_image_probs):
+        return self.categorical_encoder_generator.decoder.loss(label_vectors, reencoded_image_probs)
     
     ##encoder should create vectors that are correctly identified and DO NOT receive the reencoding flag
     def encoder_loss(self, label_vectors, encoded_label_probs):
@@ -81,8 +79,8 @@ class CategoricalEncoderGeneratorTrainer(object):
          gen_batch, label_gen_batch) = self.categorical_encoder_generator.run_all(batch_data, labels, training)
 
         encoder_loss = self.encoder_loss(labels, v_probs)
-        vectorizer_loss = self.label_vectorizer_loss(v_probs, lv_probs)
-        decoder_loss = self.decoder_loss(labels, re_v_probs, re_lv_probs)
+        vectorizer_loss = self.label_vectorizer_loss(labels, v_probs, lv_probs, re_lv_probs)
+        decoder_loss = self.decoder_loss(labels, re_v_probs)
         classifier_loss = self.classifier_loss(labels, v_probs, re_v_probs, re_lv_probs)
 
         self.most_recent_generated = gen_batch
