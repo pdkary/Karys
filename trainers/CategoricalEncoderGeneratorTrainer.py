@@ -45,7 +45,7 @@ class CategoricalEncoderGeneratorTrainer(object):
     
     def label_vectorizer_loss(self, image_labels, encoded_image_labels, devectorized_labels, reencoded_label_image_probs):
         vectorization_loss = self.categorical_encoder_generator.label_vectorizer.loss(encoded_image_labels, devectorized_labels)
-        reencoding_loss = self.categorical_encoder_generator.label_vectorizer(image_labels, reencoded_label_image_probs)
+        reencoding_loss = self.categorical_encoder_generator.label_vectorizer.loss(image_labels, reencoded_label_image_probs)
         return vectorization_loss + reencoding_loss
         
     ##generator should create images that are correctly identified and DO NOT receive the reencoding flag
