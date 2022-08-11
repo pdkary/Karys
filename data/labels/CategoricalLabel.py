@@ -12,7 +12,7 @@ class CategoricalLabel():
         self.flag_dim = len(flags)
         self.label_dim = len(categories) + len(flags)
 
-        self.labels_by_id = pd.DataFrame(categories + flags, columns=["categories"], index=range(self.label_dim))
+        self.labels_by_id = pd.DataFrame([*categories, *flags], columns=["categories"], index=range(self.label_dim))
         one_hot_encoder = OneHotEncoder(sparse=False)
         one_hot_encoder.fit(self.labels_by_id)
         label_df_encoded = one_hot_encoder.transform(self.labels_by_id)

@@ -30,14 +30,15 @@ class ClassificationTrainer(object):
         self.most_recent_output = None
 
     def __run_batch__(self, batch_names, batch_data, training=True):
-        label_func = lambda x : self.classifier.label_generator.get_single_category(self.classifier.label_to_id[x])
+        label_func = lambda x : self.classifier.label_generator.get_label_vector_by_category_name(x)
         
         batch_labels = [ self.labelled_input.image_labels[n] for n in batch_names]
-        labels = [label_func(l) for l in batch_labels]
+        vector_labels = self.classifier.label_generator.get_label_vectors_by_category_names(batch_labels)
+
         _, probs, preds = self.classifier.classify(batch_data, training)
 
         self.most_recent_output = list(zip(batch_data, batch_labels, preds))
-        return self.classifier.loss(labels, probs)
+        return self.classifier.loss(vector_labels, probs)
 
     def train(self, batch_size, num_batches):
         loss_bucket = []
