@@ -1,11 +1,11 @@
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(name='Karys',
       version='1.0',
       description='Personal implementations of popular ML structures',
       author='Parker Kary',
       author_email='pdkary@gmail.com',
-      packages=['data','image_utils','layers','models','plotting','testing','trainers'],
+      packages=find_packages(),
       install_requires=[
         'pandas',
         'tensorflow',
