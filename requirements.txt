@@ -1,8 +1,10 @@
 pandas
 tensorflow
 tensorflow_addons
+tensorflow-gpu==2.9.1
 numpy
 jupyter
 jupyterplot
 legitindicators
 scikit-learn
+dictdiffer

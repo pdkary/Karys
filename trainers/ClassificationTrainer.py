@@ -2,7 +2,9 @@ import numpy as np
 import tensorflow as tf
 
 from data.wrappers.ImageDataWrapper import ImageDataWrapper
-from models.ClassificationModel import ClassificationModel
+from keras.models import Model
+from keras.optimizers import Optimizer
+from keras.losses import Loss
 
 def batch(ndarr, batch_size):
     N = len(ndarr)//batch_size
@@ -19,11 +21,16 @@ def batch_dict(adict, batch_size):
 
 class ClassificationTrainer(object):
     def __init__(self,
-                 classifier: ClassificationModel,
+                 classifier: Model,
+                 optimizer: Optimizer,
+                 loss: Loss,
                  labelled_input: ImageDataWrapper):
-        self.classifier = classifier
-        self.labelled_input = labelled_input
+        self.classifier: Model = classifier
+        self.labelled_input: ImageDataWrapper = labelled_input
+        self.loss: Loss = loss
+        self.optimizer: Optimizer = optimizer
 
+        self.classifier.compile(optimizer=optimizer,loss=loss)
         self.labelled_train_data = self.labelled_input.get_train_dataset()
         self.labelled_test_data = self.labelled_input.get_validation_dataset()
 
@@ -31,11 +38,14 @@ class ClassificationTrainer(object):
 
     def __run_batch__(self, batch_names, batch_data, training=True):
         batch_labels = [ self.labelled_input.image_labels[n] for n in batch_names]
-        vector_labels = self.classifier.label_generator.get_label_vectors_by_category_names(batch_labels)
+        vector_labels = self.labelled_input.label_vectorizer.get_label_vectors_by_category_names(batch_labels)
 
-        probs, preds = self.classifier.classify(batch_data, training)
-        self.most_recent_output = list(zip(batch_data, batch_labels, preds))
-        return self.classifier.loss(vector_labels, probs)
+        features, classification_probs = self.classifier(batch_data, training=training)
+        
+        argmax_class = np.argmax(classification_probs, axis=1)
+        predicted_labels = self.labelled_input.label_vectorizer.get_category_names_by_ids(argmax_class)
+        self.most_recent_output = list(zip(batch_data, batch_labels, predicted_labels))
+        return self.loss(vector_labels, classification_probs)
 
     def train(self, batch_size, num_batches):
         loss_bucket = []
@@ -49,8 +59,8 @@ class ClassificationTrainer(object):
                 loss = self.__run_batch__(batch_names, batch_data, training=True)
                 loss_bucket.append(loss)
                 
-                classifier_grads = grad_tape.gradient(loss, self.classifier.model.trainable_variables)
-                self.classifier.optimizer.apply_gradients(zip(classifier_grads, self.classifier.model.trainable_variables))
+                classifier_grads = grad_tape.gradient(loss, self.classifier.trainable_variables)
+                self.optimizer.apply_gradients(zip(classifier_grads, self.classifier.trainable_variables))
         return np.sum(loss_bucket, axis=0)
     
     def test(self, batch_size, num_batches):

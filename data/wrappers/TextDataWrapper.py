@@ -1,6 +1,6 @@
 from typing import Dict
 import numpy as np
-from tensorflow.keras.preprocessing.text import Tokenizer
+from keras.preprocessing.text import Tokenizer
 import tensorflow as tf
 from data.configs.TextDataConfig import TextDataConfig
 from data.wrappers.DataWrapper import DataWrapper

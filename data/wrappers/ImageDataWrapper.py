@@ -5,8 +5,9 @@ from PIL import Image
 import json
 import os
 
-from typing import Dict
+from typing import Dict, List
 from data.configs.ImageDataConfig import ImageDataConfig
+from data.labels.CategoricalLabel import CategoricalLabel
 
 from data.wrappers.DataWrapper import DataWrapper
 import glob
@@ -21,12 +22,6 @@ def convert_image(img, channels):
         return img.convert('L')
     else:
         raise ValueError("Channels must be one of [1,3,4]")
-
-def load_labels(filepath):
-    labels = {}
-    with open(filepath, 'r') as f:
-        labels = json.load(f)
-    return labels
 
 def load_images(dirpath: str, data_ref: ImageDataConfig):
     glob_glob = dirpath + "**/*" + data_ref.image_type
@@ -50,7 +45,9 @@ def load_images(dirpath: str, data_ref: ImageDataConfig):
         if current_state >= data_ref.load_n_percent:
             break
         image_name = re.split("[\\\/]+",i)[-1]
-        x[image_name] = Image.open(i)
+        tmp = Image.open(i)
+        x[image_name] = tmp.copy()
+        tmp.close()
     print("LOADED %d IMAGES" % len(x))
     return x
 
@@ -59,26 +56,25 @@ class ImageDataWrapper(DataWrapper):
                  image_set: Dict[str, np.ndarray], 
                  image_labels: Dict[str,str],
                  data_config: ImageDataConfig, 
+                 non_present_labels: List[str] = [],
                  validation_percentage: float = 0.05):
         super(ImageDataWrapper, self).__init__(data_config, validation_percentage)
         self.image_set = image_set
         self.image_labels = {x:image_labels[x] for x in image_set.keys()}
+        self.non_present_labels = non_present_labels
+        self.label_vectorizer: CategoricalLabel = CategoricalLabel(set(image_labels.values()), non_present_labels)
         self.data_config = data_config
     
-    @classmethod
-    def load_from_file_with_single_label(cls, image_filepath, label, data_config: ImageDataConfig, validation_percentage: float = 0.05):
-        glob_glob = image_filepath + "**/*" + data_config.image_type
-        images = glob.glob(glob_glob)
-        labels = {re.split("[\\\/]+",i)[-1]:label for i in images}
-        return ImageDataWrapper.load_from_file(image_filepath, labels, data_config, validation_percentage)
+    @property
+    def classification_labels(self):
+        return [*set(self.image_labels.values()), *self.non_present_labels]
+
+    @property
+    def label_dim(self):
+        return len(self.classification_labels)
 
     @classmethod
-    def load_from_files(cls, image_filepath, label_filepath, data_config: ImageDataConfig, validation_percentage: float = 0.05):
-        labels = load_labels(label_filepath)
-        return ImageDataWrapper.load_from_file(image_filepath, labels, data_config, validation_percentage)
-
-    @classmethod
-    def load_from_labelled_directories(cls, base_dir, data_config: ImageDataConfig, validation_percentage: float = 0.05, use_dirs=None):
+    def load_from_labelled_directories(cls, base_dir, data_config: ImageDataConfig, non_present_labels: List[str], validation_percentage: float = 0.05, use_dirs=None, summary=True):
         directory_glob = glob.glob(base_dir + '/*/')
         label_dict = {}
         for folder in directory_glob:
@@ -89,23 +85,23 @@ class ImageDataWrapper(DataWrapper):
                     label_dict[filename] = label
             else:
                 print("skipping: ", label)
-        return ImageDataWrapper.load_from_file(base_dir, label_dict, data_config, validation_percentage)
+        dw = ImageDataWrapper.load_from_file(base_dir, label_dict, non_present_labels, data_config, validation_percentage)
+        return dw
 
     @classmethod
-    def load_from_file(cls, image_filepath, labels: Dict[str,str], data_config: ImageDataConfig, validation_percentage: float = 0.05):
+    def load_from_file(cls, image_filepath, labels: Dict[str,str], non_present_labels: List[str], data_config: ImageDataConfig, validation_percentage: float = 0.05):
         images = load_images(image_filepath, data_config)
         img_rows, img_cols, channels = data_config.image_shape
         imgs = {}
         for img_name in images.keys():
             if img_name in labels.keys():
                 img = images[img_name]
-                img = convert_image(img,channels)
+                img = convert_image(img, channels)
                 img = img.resize(size=(img_rows, img_cols),resample=Image.ANTIALIAS)
                 img = np.array(img).astype('float32')
                 img = data_config.load_scale_func(img)
                 imgs[img_name] = img
-        return cls(imgs, labels, data_config, validation_percentage)
-
+        return cls(imgs, labels, data_config, non_present_labels, validation_percentage)
     
     def get_train_dataset(self) -> Dict[str, np.ndarray]:
         validation_length = int(len(self.image_set)*self.validation_percentage)
@@ -114,7 +110,7 @@ class ImageDataWrapper(DataWrapper):
     
     def get_validation_dataset(self) -> Dict[str, np.ndarray]:
         validation_length = int(len(self.image_set)*self.validation_percentage)
-        validation_keys = list(self.image_set.keys())[-validation_length:]
+        validation_keys = list(self.image_set.keys())[validation_length:]
         return {k:self.image_set[k] for k in validation_keys}
     
     def save_generated_images(self, filename, generated_images):
@@ -157,8 +153,8 @@ class ImageDataWrapper(DataWrapper):
 
         R, C, M = self.data_config.preview_rows, self.data_config.preview_cols, self.data_config.preview_margin
         
-        preview_height = R*img_size + (R + 1)*M
-        preview_width = C*img_size + (C + 1)*M
+        preview_height =  (R*img_size + (R + 1)*M)/2
+        preview_width = (C*img_size + (C + 1)*M)/2
         
         fig,axes = plt.subplots(self.data_config.preview_rows,self.data_config.preview_cols)
         fig.set_figheight(preview_height)
@@ -220,5 +216,24 @@ class ImageDataWrapper(DataWrapper):
 
         fig.savefig(filename)
         plt.close()
+    
+    def summary(self):
+        # Quick stats about loaded images
+        print("----------LOADED IMAGE CATEGORIES----------")
+        print(list(set(self.image_labels.values())))
+        print("NUM IMAGES: ", len(self.image_labels))
+
+        print("----------LOADED IMAGE STATS----------")
+        value_count_dict = {v: 0 for v in set(self.image_labels.values())}
+        for x in self.image_labels.values():
+            value_count_dict[x] += 1
+        print(value_count_dict)
+        print("Max: ", np.max(list(value_count_dict.values())),
+            max(value_count_dict, key=value_count_dict.get))
+        print("Min: ", np.min(list(value_count_dict.values())),
+            min(value_count_dict, key=value_count_dict.get))
+        print("Mean: ", np.mean(list(value_count_dict.values())))
+        print("Median: ", np.median(list(value_count_dict.values())))
+        print("Deviation: ", np.std(list(value_count_dict.values())))
 
     

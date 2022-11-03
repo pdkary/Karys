@@ -13,10 +13,15 @@ class CategoricalLabel():
         self.label_dim = len(categories) + len(flags)
 
         self.labels_by_id = pd.DataFrame([*categories, *flags], columns=["categories"], index=range(self.label_dim))
+        print(self.labels_by_id)
         one_hot_encoder = OneHotEncoder(sparse=False)
         one_hot_encoder.fit(self.labels_by_id)
         label_df_encoded = one_hot_encoder.transform(self.labels_by_id)
         self.label_vectors_by_name = pd.DataFrame(data=label_df_encoded, columns=one_hot_encoder.categories_)
+    
+    @property
+    def shape(self):
+        return (self.label_dim,)
     
     def get_label_id_by_category_name(self, name):
         return self.labels_by_id.loc[self.labels_by_id["categories"] == name].index[0]
@@ -28,9 +33,9 @@ class CategoricalLabel():
         return self.label_vectors_by_name[name]
     
     def get_label_vectors_by_category_names(self,names, flags=None):
-        category_vectors = np.array([self.get_label_vector_by_category_name(n) for n in names])[:,:,0]
+        category_vectors = np.array([self.get_label_vector_by_category_name(n) for n in names],dtype=np.float32)[:,:,0]
         if flags is not None:
-            flag_vectors = np.array([self.get_label_vector_by_category_name(f) for f in flags])
+            flag_vectors = np.array([self.get_label_vector_by_category_name(f) for f in flags],dtype=np.float32)
             return category_vectors + flag_vectors
         return category_vectors
     
@@ -39,7 +44,6 @@ class CategoricalLabel():
     
     def ones(self):
         return np.ones(shape=[self.label_dim])
-    
     def zeros(self):
         return np.zeros(shape=[self.label_dim])
     

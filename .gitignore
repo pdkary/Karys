@@ -2,10 +2,12 @@
 
 examples/*/test_input/**/*.png
 examples/*/test_input/**/*.jpg
+examples/*/test_output/**/*.png
+examples/*/test_output/**/*.jpg
 examples/*/test_model_output/*
-
-
-
+output/*
+image_output/*
+model_output/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
