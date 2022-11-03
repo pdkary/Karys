@@ -5,7 +5,7 @@ setup(name='Karys',
       description='Personal implementations of popular ML structures',
       author='Parker Kary',
       author_email='pdkary@gmail.com',
-      packages=['karys'],
+      packages=['data','image_utils','layers','models','plotting','testing','trainers'],
       install_requires=[
         'pandas',
         'tensorflow',
