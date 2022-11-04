@@ -1,4 +1,4 @@
-from abc import ABC, abstractproperty
+from abc import ABC
 from typing import List, Tuple
 from keras.models import Model
 from keras.layers import Input

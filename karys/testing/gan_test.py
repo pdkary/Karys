@@ -2,7 +2,6 @@
 
 from time import time
 
-import dictdiffer
 import numpy as np
 from karys.data.wrappers.RandomDataWrapper import RandomDataWrapper
 from karys.data.configs.ImageDataConfig import ImageDataConfig

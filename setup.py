@@ -11,7 +11,7 @@ setup(name='Karys',
       ],
       install_requires=[
           'pandas',
-          'tensorflow',
+          'tensorflow',~
           'tensorflow_addons',
           'tensorflow-gpu==2.9.1',
           'numpy',

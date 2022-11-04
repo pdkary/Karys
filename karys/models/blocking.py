@@ -1,7 +1,7 @@
 from typing import Dict, Type
 from keras.layers import Conv2D, LeakyReLU, Layer, BatchNormalization, Conv2DTranspose
 
-from models.bases import GraphableModelBlock
+from karys.models.bases import GraphableModelBlock
 
 class LayerNormActBlock(GraphableModelBlock):
     def __init__(self, 

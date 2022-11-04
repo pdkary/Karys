@@ -1,5 +1,5 @@
-from models.bases import GraphableModelBlock
-from models.blocking import Conv2DBatchNormLeakyReluBlock
+from karys.models.bases import GraphableModelBlock
+from karys.models.blocking import Conv2DBatchNormLeakyReluBlock
 from keras.layers import UpSampling2D, Dense, Activation, Concatenate, Reshape
 
 class ProgressiveGenerator(GraphableModelBlock):

@@ -1,5 +1,5 @@
-from models.bases import GraphableModelBlock
-from models.blocking import Conv2DBatchNormLeakyReluBlock
+from karys.models.bases import GraphableModelBlock
+from karys.models.blocking import Conv2DBatchNormLeakyReluBlock
 from keras.layers import MaxPooling2D, Flatten, Dense, Activation,  Reshape, UpSampling2D, Conv2D
 
 class Vgg16(GraphableModelBlock):

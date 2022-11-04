@@ -6,6 +6,7 @@ from keras.models import Model
 from keras.optimizers import Optimizer
 from keras.losses import Loss
 import keras.backend as K
+
 def batch(ndarr, batch_size):
     N = len(ndarr)//batch_size
     return np.array(np.split(ndarr[:N*batch_size], N))
