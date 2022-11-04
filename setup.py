@@ -5,6 +5,7 @@ setup(name='Karys',
       description='Personal implementations of popular ML structures',
       author='Parker Kary',
       author_email='pdkary@gmail.com',
+      namespace_packages=["karys"],
       packages=find_packages(),
       install_requires=[
         'pandas',
