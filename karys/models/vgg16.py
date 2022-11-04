@@ -32,9 +32,10 @@ class Vgg16(GraphableModelBlock):
         return x
 
 class Vgg16Classifier(GraphableModelBlock):
-    def __init__(self, num_classifications):
+    def __init__(self, num_classifications, output_features=True):
         super(Vgg16Classifier, self).__init__()
         self.vgg16 = Vgg16()
+        self.output_features = output_features
         self.classification_layer = Dense(num_classifications)
         self.classification_activation = Activation('softmax')
     
@@ -45,7 +46,10 @@ class Vgg16Classifier(GraphableModelBlock):
     def call(self, input_tensor, training=False):
         features = self.vgg16.call(input_tensor, training=training)
         classifications = self.classification_activation(self.classification_layer(features))
-        return (features, classifications)
+        if self.output_features:
+            return (features, classifications)
+        else:
+            return classifications
 
 class ReverseVgg16Generator(GraphableModelBlock):
     def __init__(self, noise_size: int = 4096):
