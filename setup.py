@@ -1,11 +1,11 @@
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 
 setup(name='Karys',
       version='1.0',
       description='Personal implementations of popular ML structures',
       author='Parker Kary',
       author_email='pdkary@gmail.com',
-      packages=find_packages(),
+      packages=find_namespace_packages(include=['karys.*']),
       install_requires=[
         'pandas',
         'tensorflow',
