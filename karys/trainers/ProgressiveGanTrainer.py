@@ -1,13 +1,12 @@
 import numpy as np
 import tensorflow as tf
-from data.labels.CategoricalLabel import CategoricalLabel
 from keras.models import Model
 from keras.optimizers import Optimizer
 from keras.losses import Loss 
 import keras.backend as K
 
-from data.wrappers.ImageDataWrapper import ImageDataWrapper
-from data.wrappers.RandomDataWrapper import RandomDataWrapper
+from karys.data.wrappers.ImageDataWrapper import ImageDataWrapper
+from karys.data.wrappers.RandomDataWrapper import RandomDataWrapper
 
 def batch(ndarr, batch_size):
     N = len(ndarr)//batch_size
@@ -22,7 +21,7 @@ def batch_dict(adict, batch_size):
         batches.append((b_names, b_vals))
     return batches
 
-class ImageGanTrainer(object):
+class ProgressiveGanTrainer(object):
     def __init__(self,
                  generator: Model,
                  discriminator: Model,

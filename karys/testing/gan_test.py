@@ -1,18 +1,19 @@
 
 
-from data.configs.ImageDataConfig import ImageDataConfig
-from data.configs.RandomDataConfig import RandomDataConfig
-from data.wrappers.ImageDataWrapper import ImageDataWrapper
-from keras.losses import BinaryCrossentropy
-from keras.optimizers import Adam
-from keras.models import load_model
-from data.wrappers.RandomDataWrapper import RandomDataWrapper
-from models.vgg16 import ReverseVgg16Generator, Vgg16Classifier
 from time import time
-import numpy as np
-import dictdiffer
 
-from trainers.ImageGanTrainer import ImageGanTrainer                                          
+import dictdiffer
+import numpy as np
+from karys.data.wrappers.RandomDataWrapper import RandomDataWrapper
+from karys.data.configs.ImageDataConfig import ImageDataConfig
+from karys.data.configs.RandomDataConfig import RandomDataConfig
+from karys.data.wrappers.ImageDataWrapper import ImageDataWrapper
+from karys.models.vgg16 import ReverseVgg16Generator, Vgg16Classifier
+from keras.losses import BinaryCrossentropy
+from keras.models import load_model
+from keras.optimizers import Adam
+from trainers.ImageGanTrainer import ImageGanTrainer
+
 
 def test_train_gan_model(generator, discriminator, gen_optimizer, gen_loss, disc_optimizer, disc_loss, noise_data_wrapper, image_data_wrapper, epochs=5, trains_per_test=4):
     trainer = ImageGanTrainer(generator, discriminator, gen_optimizer, gen_loss, disc_optimizer, disc_loss, noise_data_wrapper, image_data_wrapper)

@@ -6,8 +6,8 @@ from sklearn import preprocessing
 
 from pandas import DataFrame
 
-from data.configs.CsvDataConfig import CsvDataConfig
-from data.wrappers.DataWrapper import DataWrapper
+from karys.data.configs.CsvDataConfig import CsvDataConfig
+from karys.data.wrappers.DataWrapper import DataWrapper
 
 def index_to_datetime(df: pd.DataFrame, index_name: str):
     assert index_name in df.columns

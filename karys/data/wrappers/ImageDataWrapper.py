@@ -6,10 +6,10 @@ import json
 import os
 
 from typing import Dict, List
-from data.configs.ImageDataConfig import ImageDataConfig
-from data.labels.CategoricalLabel import CategoricalLabel
+from karys.data.configs.ImageDataConfig import ImageDataConfig
+from karys.data.labels.CategoricalLabel import CategoricalLabel
 
-from data.wrappers.DataWrapper import DataWrapper
+from karys.data.wrappers.DataWrapper import DataWrapper
 import glob
 
 
@@ -153,12 +153,9 @@ class ImageDataWrapper(DataWrapper):
 
         R, C, M = self.data_config.preview_rows, self.data_config.preview_cols, self.data_config.preview_margin
         
-        preview_height =  (R*img_size + (R + 1)*M)/2
-        preview_width = (C*img_size + (C + 1)*M)/2
-        
-        fig,axes = plt.subplots(self.data_config.preview_rows,self.data_config.preview_cols)
-        fig.set_figheight(preview_height)
-        fig.set_figwidth(preview_width)
+        preview_height =  (R*img_size + (R + 1)*M)
+        preview_width = (C*img_size + (C + 1)*M)
+        fig,axes = plt.subplots(self.data_config.preview_rows,self.data_config.preview_cols, figsize=(preview_width, preview_height))
 
         for row in range(R):
             for col in range(C):
@@ -177,7 +174,7 @@ class ImageDataWrapper(DataWrapper):
                     img = np.asarray(img)
                     
                 axes[row,col].imshow(img)
-                axes[row,col].set_title(text_label, fontsize=img_size*2)
+                axes[row,col].set_title(text_label, fontsize=img_size*4)
 
         fig.savefig(filename)
         plt.close()

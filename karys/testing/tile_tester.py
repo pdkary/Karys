@@ -1,4 +1,4 @@
-from image_utils import ImageTiler
+from karys.image_utils import ImageTiler
 from PIL import Image
 
 img = Image.open('painting.jpg')

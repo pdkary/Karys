@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractclassmethod, abstractmethod
 
-from data.configs.DataConfig import DataConfig
+from karys.data.configs.DataConfig import DataConfig
 
 
 class DataWrapper(ABC):

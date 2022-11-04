@@ -1,13 +1,13 @@
 from time import time
 
 import numpy as np
-from data.configs.ImageDataConfig import ImageDataConfig
-from data.wrappers.ImageDataWrapper import ImageDataWrapper
+from karys.data.configs.ImageDataConfig import ImageDataConfig
+from karys.data.wrappers.ImageDataWrapper import ImageDataWrapper
 from keras.losses import BinaryCrossentropy, MeanSquaredError
 from keras.models import load_model
 from keras.optimizers import Adam
-from data.configs.RandomDataConfig import RandomDataConfig
-from data.wrappers.RandomDataWrapper import RandomDataWrapper
+from karys.data.configs.RandomDataConfig import RandomDataConfig
+from karys.data.wrappers.RandomDataWrapper import RandomDataWrapper
 from trainers.ImageGanTrainer import ImageGanTrainer
 from models.vgg16 import Vgg16Classifier, ReverseVgg16Generator
 

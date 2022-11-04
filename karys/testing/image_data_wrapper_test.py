@@ -1,8 +1,5 @@
-
-
-import data
-from data.configs.ImageDataConfig import ImageDataConfig
-from data.wrappers.ImageDataWrapper import ImageDataWrapper
+from karys.data.configs.ImageDataConfig import ImageDataConfig
+from karys.data.wrappers.ImageDataWrapper import ImageDataWrapper
 
 
 def test_load_from_labelled_directories():

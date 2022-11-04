@@ -1,7 +1,7 @@
-from dataclasses import dataclass
+from karys.dataclasses import dataclass
 from typing import Tuple
 
-from data.configs.DataConfig import DataConfig
+from karys.data.configs.DataConfig import DataConfig
 
 
 @dataclass

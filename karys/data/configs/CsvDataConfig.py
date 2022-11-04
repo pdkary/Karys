@@ -1,10 +1,8 @@
 from copy import copy
-from dataclasses import dataclass
+from karys.dataclasses import dataclass
 from typing import Callable, Dict, List, Tuple
 
-from data.configs.DataConfig import DataConfig
-from data.saved_models import SavedModelService
-
+from karys.data.configs.DataConfig import DataConfig
 
 @dataclass
 class CalculatedColumnConfig(object):

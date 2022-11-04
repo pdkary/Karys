@@ -1,7 +1,7 @@
 from typing import Tuple
 
 import numpy as np
-from data.configs.DataConfig import DataConfig
+from karys.data.configs.DataConfig import DataConfig
 
 
 class RandomDataConfig(DataConfig):

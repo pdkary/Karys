@@ -1,14 +1,13 @@
 
 
-from data.configs.ImageDataConfig import ImageDataConfig
-from data.wrappers.ImageDataWrapper import ImageDataWrapper
+from karys.data.configs.ImageDataConfig import ImageDataConfig
+from karys.data.wrappers.ImageDataWrapper import ImageDataWrapper
 from keras.losses import BinaryCrossentropy
 from keras.optimizers import Adam
 from keras.models import load_model
-from models.vgg16 import ReverseVgg16Generator, Vgg16Classifier
+from karys.models.vgg16 import Vgg16Classifier
 from time import time
 import numpy as np
-import dictdiffer
 
 from trainers.ClassificationTrainer import ClassificationTrainer                                          
 

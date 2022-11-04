@@ -1,9 +1,9 @@
 from typing import Tuple
 import numpy as np
 import tensorflow as tf
-from data.configs.RandomDataConfig import RandomDataConfig
+from karys.data.configs.RandomDataConfig import RandomDataConfig
 
-from data.wrappers.DataWrapper import DataWrapper
+from karys.data.wrappers.DataWrapper import DataWrapper
 
 class RandomDataWrapper(DataWrapper):
     def __init__(self, data_config: RandomDataConfig, train_test_ratio: float = 0.7):

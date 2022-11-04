@@ -1,6 +1,6 @@
 from typing import List
-from data.configs.CsvDataConfig import CsvDataConfig
-from data.wrappers.CsvDataWrapper import CsvDataWrapper
+from karys.data.configs.CsvDataConfig import CsvDataConfig
+from karys.data.wrappers.CsvDataWrapper import CsvDataWrapper
 from matplotlib import pyplot as plt
 
 

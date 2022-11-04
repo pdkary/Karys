@@ -5,7 +5,7 @@ from typing import Callable, Tuple
 
 import numpy as np
 
-from data.configs.DataConfig import DataConfig
+from karys.data.configs.DataConfig import DataConfig
 
 def map_to_range(input_arr,new_max,new_min):
     img_max = float(np.max(input_arr))

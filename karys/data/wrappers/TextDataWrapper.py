@@ -2,8 +2,8 @@ from typing import Dict
 import numpy as np
 from keras.preprocessing.text import Tokenizer
 import tensorflow as tf
-from data.configs.TextDataConfig import TextDataConfig
-from data.wrappers.DataWrapper import DataWrapper
+from karys.data.configs.TextDataConfig import TextDataConfig
+from karys.data.wrappers.DataWrapper import DataWrapper
 
 class TextDataWrapper(DataWrapper):
     def __init__(self, 

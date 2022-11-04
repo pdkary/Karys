@@ -1,5 +1,5 @@
-from models.progressive_discriminator import ProgressiveDiscriminator
-from models.progressive_generator import ProgressiveGenerator
+from karys.models.progressive_discriminator import ProgressiveDiscriminator
+from karys.models.progressive_generator import ProgressiveGenerator
 
 def test_build_prog_gan():
     disc = ProgressiveDiscriminator(4096)
