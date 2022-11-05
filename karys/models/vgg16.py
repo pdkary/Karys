@@ -32,12 +32,12 @@ class Vgg16(GraphableModelBlock):
         return x
 
 class Vgg16Classifier(GraphableModelBlock):
-    def __init__(self, num_classifications, output_features=True):
+    def __init__(self, num_classifications, output_features=True, final_activation=None):
         super(Vgg16Classifier, self).__init__()
         self.vgg16 = Vgg16()
         self.output_features = output_features
         self.classification_layer = Dense(num_classifications)
-        self.classification_activation = Activation('softmax')
+        self.classification_activation = Activation('softmax') if final_activation is None else final_activation
     
     @property
     def input_shape(self):

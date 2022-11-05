@@ -11,6 +11,8 @@ model_output/*
 
 *.pb
 
+.vscode/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
