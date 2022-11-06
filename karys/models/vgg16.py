@@ -31,10 +31,61 @@ class Vgg16(GraphableModelBlock):
             x = layer(x, training = training)
         return x
 
+class Vgg16Lite(GraphableModelBlock):
+    def __init__(self, feature_size: int = 4096):
+        super(Vgg16Lite, self).__init__()
+        self.layer_definitions = [
+            Conv2DBatchNormLeakyReluBlock(2, 0.08, dict(filters=64,kernel_size=3, padding="same")),
+            MaxPooling2D(),
+            Conv2DBatchNormLeakyReluBlock(2, 0.08, dict(filters=128,kernel_size=3, padding="same")),
+            MaxPooling2D(),
+            Conv2DBatchNormLeakyReluBlock(3, 0.08, dict(filters=256,kernel_size=3, padding="same")),
+            MaxPooling2D(),
+            Conv2DBatchNormLeakyReluBlock(3, 0.08, dict(filters=512,kernel_size=3, padding="same")),
+            MaxPooling2D(),
+            Conv2DBatchNormLeakyReluBlock(3, 0.08, dict(filters=512,kernel_size=3, padding="same")),
+            MaxPooling2D(),
+            Conv2DBatchNormLeakyReluBlock(3, 0.08, dict(filters=512,kernel_size=3, padding="same")),
+            MaxPooling2D(),
+            Flatten(),
+            Dense(feature_size), Activation('relu'),
+            Dense(feature_size), Activation('relu'),
+        ]
+    
+    @property
+    def input_shape(self):
+        return (224,224,3)
+
+    def call(self, input_tensor, training=False):
+        x = input_tensor
+        for layer in self.layer_definitions:
+            x = layer(x, training = training)
+        return x
+
 class Vgg16Classifier(GraphableModelBlock):
     def __init__(self, num_classifications, output_features=True, final_activation=None):
         super(Vgg16Classifier, self).__init__()
         self.vgg16 = Vgg16()
+        self.output_features = output_features
+        self.classification_layer = Dense(num_classifications)
+        self.classification_activation = Activation('softmax') if final_activation is None else final_activation
+    
+    @property
+    def input_shape(self):
+        return (224,224,3)
+
+    def call(self, input_tensor, training=False):
+        features = self.vgg16.call(input_tensor, training=training)
+        classifications = self.classification_activation(self.classification_layer(features))
+        if self.output_features:
+            return (features, classifications)
+        else:
+            return classifications
+
+class Vgg16LiteClassifier(GraphableModelBlock):
+    def __init__(self, num_classifications, output_features=True, final_activation=None):
+        super(Vgg16LiteClassifier, self).__init__()
+        self.vgg16 = Vgg16Lite()
         self.output_features = output_features
         self.classification_layer = Dense(num_classifications)
         self.classification_activation = Activation('softmax') if final_activation is None else final_activation
