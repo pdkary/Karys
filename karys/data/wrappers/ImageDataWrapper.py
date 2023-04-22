@@ -147,6 +147,34 @@ class ImageDataWrapper(DataWrapper):
         im = Image.fromarray(image_array.astype(np.uint8))
         im.save(filename)
     
+    def save_progressive_classified_images(self, filename, prog_images_with_labels_and_preds, img_size = 32):
+        ##currently only implemented for single images
+        num_plots = len(prog_images_with_labels_and_preds)
+        preview_height = img_size + 16
+        preview_width = (img_size + 16)*num_plots
+        fig,axes = plt.subplots(1, num_plots, figsize=(preview_width, preview_height))
+        i=0
+        for image_set, given_labels, predicted_labels in prog_images_with_labels_and_preds:
+            channels = image_set.shape[-1]
+
+            pass_fail = "PASS" if np.all(predicted_labels == given_labels[0]) else "FAIL"
+            text_label = predicted_labels + " || " + given_labels[0] + " || " + pass_fail
+            img = self.data_config.save_scale_func(image_set[0])
+            
+            if channels == 1:
+                img = np.reshape(img,newshape=(img_size,img_size))
+            else:
+                img = np.array(img)
+                img = Image.fromarray((img).astype(np.uint8))
+                img = img.resize((img_size,img_size), Image.NEAREST)
+                img = np.asarray(img)
+            
+            axes[i].imshow(img)
+            axes[i].set_title(text_label, fontsize=img_size*4)
+            i+=1
+        fig.savefig(filename)
+        plt.close()
+    
     def save_classified_images(self, filename, images_with_labels_and_preds, img_size = 32):
         image_shape = images_with_labels_and_preds[0][0].shape
         channels = image_shape[-1]

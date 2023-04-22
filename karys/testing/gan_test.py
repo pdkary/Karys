@@ -11,7 +11,7 @@ from karys.models.vgg16 import ReverseVgg16Generator, Vgg16Classifier
 from keras.losses import BinaryCrossentropy
 from keras.models import load_model
 from keras.optimizers import Adam
-from trainers.ImageGanTrainer import ImageGanTrainer
+from karys.trainers.ImageGanTrainer import ImageGanTrainer
 
 
 def test_train_gan_model(generator, discriminator, gen_optimizer, gen_loss, disc_optimizer, disc_loss, noise_data_wrapper, image_data_wrapper, epochs=5, trains_per_test=4):

@@ -9,10 +9,10 @@ from karys.models.vgg16 import Vgg16Classifier
 from time import time
 import numpy as np
 
-from trainers.ClassificationTrainer import ClassificationTrainer                                          
+from karys.trainers.ImageClassificationTrainer import ImageClassificationTrainer                                          
 
 def test_train_classification_model(classifier, optimizer, loss, data_wrapper, epochs=5, trains_per_test=4):
-    trainer = ClassificationTrainer(classifier, optimizer, loss, data_wrapper)
+    trainer = ImageClassificationTrainer(classifier, optimizer, loss, data_wrapper)
     output_path = "./examples/discriminator/test_output"
 
     test_loss = 0

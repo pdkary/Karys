@@ -1,38 +1,43 @@
 from time import time
+from typing import Tuple
 
 import numpy as np
+from karys.data.ImageDataLoader import ImageDataLoader
 from karys.data.configs.ImageDataConfig import ImageDataConfig
 from karys.data.wrappers.ImageDataWrapper import ImageDataWrapper
 from keras.losses import BinaryCrossentropy, MeanSquaredError
-from keras.models import load_model
+from keras.models import load_model, Model
 from keras.optimizers import Adam
 from karys.data.configs.RandomDataConfig import RandomDataConfig
 from karys.data.wrappers.RandomDataWrapper import RandomDataWrapper
-from trainers.ImageGanTrainer import ImageGanTrainer
-from models.vgg16 import Vgg16Classifier, ReverseVgg16Generator
+from karys.trainers.ImageGanTrainer import ImageGanTrainer
+from karys.models.vgg16 import Vgg16Classifier, ReverseVgg16Generator
 
-base_path = "./examples/generative_adversarial"
-input_path = base_path + "/test_input/"
+base_path = "./examples/discriminator"
+input_path = base_path + "/test_input/Fruit"
 output_path = "./examples/generative_adversarial/test_output"
 
 gen_path = output_path + "/vgg16_bob_generator"
 disc_path = output_path + "/vgg16_bob_discriminator"
 
-def load_data():
-    extra_labels = ["generated"]
-    image_config = ImageDataConfig(image_shape=(224,224, 3),image_type=".png", preview_rows=3, preview_cols=3, load_n_percent=100)
-    data_wrapper = ImageDataWrapper.load_from_labelled_directories(input_path + '/', image_config, extra_labels, validation_percentage=0.1)
+noise_size = 512
 
-    random_config = RandomDataConfig([512], 0.0, 1.5)
-    random_data_wrapper = RandomDataWrapper(random_config)
-    return data_wrapper, random_data_wrapper
+gen_optimizer = Adam(learning_rate=2e-5)
+disc_optimizer = Adam(learning_rate=2e-5)
 
-def load_models(num_categories, noise_size):
+style_loss_fn = MeanSquaredError(reduction="sum")
+gen_loss_fn = BinaryCrossentropy(from_logits=True, reduction="sum")
+disc_loss_fn = BinaryCrossentropy(from_logits=True, reduction="sum")
+
+def load_models() -> Tuple[Model, Model, ImageGanTrainer]:
+    global noise_size, gen_path, disc_path
+    data_loader = ImageDataLoader(input_path + "/",".jpg",0.1)
+    classification_size = len(data_loader.label_set)
     try:
         print("loading classifier...")
         classifier = load_model(disc_path)
     except Exception as e:
-        classifier = Vgg16Classifier(num_categories).build_graph()
+        classifier = Vgg16Classifier(classification_size).build_graph()
     classifier.summary()
     try:
         print("loading generator...")
@@ -41,22 +46,16 @@ def load_models(num_categories, noise_size):
         print("loading of generator failed, building...")
         generator = ReverseVgg16Generator(noise_size).build_graph()
     generator.summary()
-    return generator, classifier
+    trainer = ImageGanTrainer(generator, classifier, gen_optimizer, gen_loss_fn, disc_optimizer, disc_loss_fn, style_loss_fn,  data_loader)
+    return generator, classifier, trainer
 
 def train(epochs, trains_per_test):
-    data_wrapper, random_data_wrapper = load_data()
-    generator, classifier = load_models(data_wrapper.label_dim, random_data_wrapper.data_config.shape[0])
+    global gen_loss_fn, disc_optimizer, disc_loss_fn, style_loss_fn
+    generator, classifier, trainer = load_models()
     
-    gen_optimizer = Adam(learning_rate=2e-5)
-    disc_optimizer = Adam(learning_rate=2e-5)
-
-    style_loss_fn = MeanSquaredError(reduction="sum")
-    gen_loss_fn = BinaryCrossentropy(from_logits=True, reduction="sum")
-    disc_loss_fn = BinaryCrossentropy(from_logits=True, reduction="sum")
-    trainer = ImageGanTrainer(generator, classifier, gen_optimizer, gen_loss_fn, disc_optimizer, disc_loss_fn, style_loss_fn, random_data_wrapper, data_wrapper)
     for i in range(epochs):
         start_time = time()
-        gen_loss, disc_loss, gen_style_loss, disc_style_loss = trainer.train(4, 2)
+        gen_loss, disc_loss, gen_style_loss, disc_style_loss = trainer.train(6, 1)
         avg_gen_loss = np.mean(gen_loss)
         avg_disc_loss = np.mean(disc_loss)
         avg_gen_style_loss = np.mean(gen_style_loss)
@@ -70,8 +69,8 @@ def train(epochs, trains_per_test):
             avg_disc_style_loss = np.mean(disc_style_loss)
             real_output_filename = output_path + "/real-" + str(i) + ".jpg"
             gen_output_filename = output_path + "/generated-" + str(i) + ".jpg"
-            data_wrapper.save_classified_images(real_output_filename, trainer.most_recent_output, img_size=32)
-            data_wrapper.save_classified_images(gen_output_filename, trainer.most_recent_gen_output, img_size=128)
+            trainer.save_classified_real_images(real_output_filename, 3,3, img_size=128)
+            trainer.save_classified_gen_images(gen_output_filename, 3,3, img_size=128)
         
         end_time = time()
         test_label = "TEST" if i % trains_per_test == 0 and i != 0 else ""
