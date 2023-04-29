@@ -1,7 +1,7 @@
 pandas
 tensorflow
 tensorflow_addons
-tensorflow-gpu==2.9.1
+tensorflow-gpu
 tensorboard
 numpy
 jupyter
