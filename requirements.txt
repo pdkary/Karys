@@ -1,7 +1,6 @@
 pandas
 tensorflow
 tensorflow_addons
-tensorflow-gpu
 tensorboard
 numpy
 jupyter
