@@ -60,12 +60,14 @@ class ImageDataLoader():
         print("------BEGIN DATA SUMMARY------------")
         print("--\t------TRAIN---------------------")
         for key, val in self.train_images.items():
-            space = max(12 - len(key),0)
-            print(f"\t{key}{' '*space}\t|\t{len(val)}\t|\t{val[0].shape}")
+            if len(val) > 0:
+                space = max(12 - len(key),0)
+                print(f"\t{key}{' '*space}\t|\t{len(val)}\t|\t{val[0].shape}")
         print("--\t------TEST----------------------")
         for key, val in self.validation_images.items():
-            space = max(12 - len(key),0)
-            print(f"\t{key}{' '*space}\t|\t{len(val)}\t|\t{val[0].shape}")
+            if len(val) > 0:
+                space = max(12 - len(key),0)
+                print(f"\t{key}{' '*space}\t|\t{len(val)}\t|\t{val[0].shape}")
         print("------END DATA SUMMARY--------------")
     
     def get_all_images_sized(self, newsize):
