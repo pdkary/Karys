@@ -9,3 +9,4 @@ legitindicators
 scikit-learn
 dictdiffer
 pydot
+gensim

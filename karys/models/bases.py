@@ -35,7 +35,6 @@ class GraphableModelBlock(Model, ABC):
         return x, extra_outs 
     
     def get_inputs(self):
-        print("IN GET INPUTS: ",self.input_shape)
         if isinstance(self.input_shape, Tuple):
             in_shape = self.input_shape[1:] if self.input_shape[0] is None else self.input_shape
             # print("\tIN SHAPE: ", in_shape)
