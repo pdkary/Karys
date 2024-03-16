@@ -23,10 +23,11 @@ class GraphableModelBlock(Model, ABC):
         extra_outs = []
         for layer in self.layer_definitions:
             # print(layer)
-            # if isinstance(layer, GraphableModelBlock):
-            #     x = layer.call(x, training=training)
-            # else:
-            x = layer(x, training=training)
+            if isinstance(layer, GraphableModelBlock):
+                x = layer.call(x, training=training)
+            else:
+                x = layer(x, training=training)
+            
             if isinstance(x, tuple):
                 x, e_outs = x
                 extra_outs.extend(e_outs)
